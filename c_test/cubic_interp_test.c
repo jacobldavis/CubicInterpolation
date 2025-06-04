@@ -15,12 +15,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #include "cubic_interp.h"
 #include <gsl/gsl_test.h>
 #include <gsl/gsl_math.h>
 #include <assert.h>
-
 
 int cubic_interp_test(void)
 {
