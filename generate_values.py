@@ -17,18 +17,20 @@
  * The purpose of this program is to generate a series of random values
  * for testing cubic interpolation at different array sizes.
  * 
- * Usage: python generate_values.py > values.txt
+ * Usage: python generate_values.py
 '''
 
 import numpy as np
-n_values = {10, 100, 1000, 10000, 100000, 1000000}
+n_values = [10, 100, 1000, 10000, 100000, 1000000]
 
-for n in n_values:
-    # generates a randomized array of n floats
-    initial = np.random.randint(0, 100, n)
-    offset = np.random.rand(n)
-    values = initial * offset
+with open('values.txt', 'w') as f:
+    for n in n_values:
+        # generates a randomized array of n floats
+        initial = np.random.randint(0, 100, n)
+        offset = np.random.rand(n)
+        values = initial * offset
 
-    # prints the array
-    values = np.round(values, 2)
-    print(", ".join(map(str, values)))
+        # prints the array
+        values = np.round(values, 2)
+        print(", ".join(map(str, values)), file=f)
+
