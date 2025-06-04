@@ -21,31 +21,47 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-#ifndef __cplusplus
+static const int n_values[5] = {4, 10, 100, 400, 1000};
+static const int n_values_size = 5;
 
-static const int n_values[6] = {10, 100, 1000, 10000, 100000, 1000000};
+/* 
+ * Collects arrays of the sizes in n_values from 1dvalues.txt.
+ */
+double **read_1dvalues();
 
- /* 
-  * Collects arrays of the sizes in n_values from values.txt.
-  */
-double **read_values();
+/* 
+ * Collects arrays of the sizes in n_values from 2dvalues.txt.
+ */
+double **read_2dvalues();
+
+/*
+ * Frees the 1d values
+ */
+void free1d(double** values);
+
+/*
+ * Frees the 2d values
+ */
+void free2d(double*** values);
 
 /*
  * Runs the cubic interpolation at a particular value of n.
  */
-void test_n(int n, double* values);
+void test_cubic(int i, double* values);
 
 /*
  * Runs the cubic interpolation at every value of n in n_values.
  */
-void test_all_n(double** values);
+void test_all_cubic(double** values);
 
 /*
- * Tests a particular implementation of cubic interpolation.
- * Plans include the following frameworks: xtensor, Eigen, CUDA, and OpenCL.
+ * Runs the bicubic interpolation at a particular value of n.
  */
-double run_interpolate(int c);
+void test_bicubic(int i, double** values);
 
-#endif /* __cplusplus */
+/*
+ * Runs the bicubic interpolation at every value of n in n_values.
+ */
+void test_all_bicubic(double*** values);
 
 #endif /* CUBIC_INTERP_H */

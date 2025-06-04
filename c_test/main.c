@@ -19,39 +19,106 @@
  */
 
 #include "c_frame/cubic_interp.h"
+#include "main.h"
 #include <gsl/gsl_test.h>
 #include <gsl/gsl_math.h>
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-int main() {
-    // Welcomes the profiler.
-    printf("\n--- Welcome to profiling! ---\n");
-
-    // Reads in the cubic interpolation values from values.txt.
-
-    // Selects to run the cubic interpolation at a particular value or all values of n.
-    int c = 0;
-    printf("\nWhat value(s) of n do you want to test?\n");
-    printf("0: 10, 1: 100, 2: 1000, 3: 10000, 4: 100000, 5: 1000000 6: All\n");
-
+int main(int argc, char **argv) {
+    double **values = read_values();
+    return 0;
 }
 
+double **read_1dvalues() {
+    // Allocates memory for values based on n_values.
+    double** values = (double**)malloc(n_values_size * sizeof(double*));
+    for (int i = 0; i < n_values_size; i++) {
+        values[i] = (double*)malloc(n_values[i] * sizeof(double));
+    }
 
-double **read_values() {
+    // Reads and returns the values from 1dvalues.txt into values.
+    FILE *file = fopen("../values.txt", "r");
+    for (int i = 0; i < n_values_size; i++) {
+        for (int j = 0; j < n_values[i]; j++) {
+            fscanf(file, "%lf, ", &values[i][j]);
+        }
+    }
 
+    return values;
 }
 
+double **read_2dvalues() {
+    // Allocates memory for values based on n_values.
+    double*** values = (double***)malloc(n_values_size * sizeof(double**));
+    for (int i = 0; i < n_values[i]; i++) {
+        values[i] = (double**)malloc(n_values[i] * sizeof(double*));
+        for (int j = 0; j < n_values[i]; j++) {
+            values[i][j] = (double*)malloc(n_values[i] * sizeof(double));
+        }
+    }
 
-void test_n(int n, double* values) {
+    // Reads and returns the values from 1dvalues.txt into values.
+    FILE *file = fopen("../values.txt", "r");
+    for (int i = 0; i < n_values_size; i++) {
+        for (int j = 0; j < n_values[i]; j++) {
+            for (int k = 0; k < n_values[i]; k++) {
+                fscanf(file, "%lf, ", &values[i][j][k]);
+            }
+        }
+    }
 
+    return values;
 }
 
-
-void test_all_n(double** values) {
-
+// TODO: add timing
+void test_cubic(int i, double* values) {
+    cubic_interp *interp = cubic_interp_init(values, n_values[i], -1, 1);
+    for (double t = -10; t <= 10; t += 0.01) {
+        const double result = cubic_interp_eval(interp, t);
+    }
+    cubic_interp_free(interp);
 }
 
-double run_interpolate(int c) {
-    return 0.0;
+void test_all_cubic(double** values) {
+    // Runs the test for all values of n
+    for (int i = 0; i < n_values_size; i++) {
+        test_cubic(i, values[i]);
+    }
+}
+
+// TODO: add timing
+void test_bicubic(int i, double** values) {
+    bicubic_interp *interp = bicubic_interp_init(*values, n_values[i], n_values[i], -1, -1, 1, 1);
+    for (double s = -5; s <= 2; s += 0.1) {
+        for (double t = -5; t <= 1; t += 0.1) {
+            const double result = bicubic_interp_eval(interp, s, t);
+        }
+    }
+    bicubic_interp_free(interp);
+}
+
+void test_all_bicubic(double*** values) {
+    // Runs the test for all values of n
+    for (int i = 0; i < n_values_size; i++) {
+        test_bicubic(i, values[i]);
+    }
+}
+
+void free1d(double** values) {
+    for (int i = 0; i < n_values_size; i++) {
+        free(values[i]);
+    }
+    free(values);
+}
+
+void free2d(double*** values) {
+    for (int i = 0; i < n_values_size; i++) {
+        for (int j = 0; j < n_values[i]; j++) {
+            free(values[i][j]);
+        }
+        free(values[i]);
+    }
+    free(values);
 }

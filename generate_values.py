@@ -21,13 +21,24 @@
 '''
 
 import numpy as np
-n_values = [10, 100, 1000, 10000, 100000, 1000000]
+n_values = [4, 10, 100, 400, 1000]
 
-with open('values.txt', 'w') as f:
+with open('1dvalues.txt', 'w') as f:
     for n in n_values:
         # generates a randomized array of n floats
         initial = np.random.randint(0, 100, n)
         offset = np.random.rand(n)
+        values = initial * offset
+
+        # prints the array
+        values = np.round(values, 2)
+        print(", ".join(map(str, values)), file=f)
+
+with open('2dvalues.txt', 'w') as f:
+    for n in n_values:
+        # generates a randomized array of n floats
+        initial = np.random.randint(0, 100, n*n)
+        offset = np.random.rand(n*n)
         values = initial * offset
 
         # prints the array
