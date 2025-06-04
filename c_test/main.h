@@ -32,7 +32,7 @@ double **read_1dvalues();
 /* 
  * Collects arrays of the sizes in n_values from 2dvalues.txt.
  */
-double **read_2dvalues();
+double ***read_2dvalues();
 
 /*
  * Frees the 1d values

@@ -15,7 +15,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #include "cubic_interp.h"
 #include "branch_prediction.h"
 #include "vmath.h"
