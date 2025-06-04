@@ -85,14 +85,13 @@ double ***read_2dvalues() {
     return values;
 }
 
-// TODO: add timing
 void test_cubic(int i, double* values) {
     clock_t start, end;
     double cpu_time_used;
     cubic_interp *interp = cubic_interp_init(values, n_values[i], -1, 1);
     start = clock();
-    for (double t = -10; t <= 10; t += 0.01) {
-        double u = rand() * 20 - 10;
+    for (double t = -1000; t <= 1000; t += 0.01) {
+        double u = rand() * 2000 - 1000;
         const double result = cubic_interp_eval(interp, u);
     }
     end = clock();
@@ -109,7 +108,6 @@ void test_all_cubic(double** values) {
     }
 }
 
-// TODO: add timing
 void test_bicubic(int i, double** values) {
     clock_t start, end;
     double cpu_time_used;
