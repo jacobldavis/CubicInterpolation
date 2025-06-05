@@ -1,0 +1,64 @@
+/*
+ * Copyright (C) 2025 Jacob Davis
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * 
+ * The purpose of this program is to control profiling
+ * different frameworks for a cubic interpolation.
+ */
+
+#pragma once
+
+static const int n_values[5] = {4, 10, 100, 400, 1000};
+static const int n_values_size = 5;
+
+/* 
+ * Collects arrays of the sizes in n_values from 1dvalues.txt.
+ */
+double **read_1dvalues();
+
+/* 
+ * Collects arrays of the sizes in n_values from 2dvalues.txt.
+ */
+double ***read_2dvalues();
+
+/*
+ * Frees the 1d values
+ */
+void free1d(double** values);
+
+/*
+ * Frees the 2d values
+ */
+void free2d(double*** values);
+
+/*
+ * Runs the cubic interpolation at a particular value of n.
+ */
+void test_cubic(int i, double* values);
+
+/*
+ * Runs the cubic interpolation at every value of n in n_values.
+ */
+void test_all_cubic(double** values);
+
+/*
+ * Runs the bicubic interpolation at a particular value of n.
+ */
+void test_bicubic(int i, double** values);
+
+/*
+ * Runs the bicubic interpolation at every value of n in n_values.
+ */
+void test_all_bicubic(double*** values);
