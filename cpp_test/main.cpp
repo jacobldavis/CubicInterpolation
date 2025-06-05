@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
 
     // Execute the tests for onevalues and two values
     srand(time(NULL));
-    test_all_xtensor_cubic(onevalues);
+    //test_all_xtensor_cubic(onevalues);
     test_all_xtensor_bicubic(twovalues);
     free2d(twovalues);
 
@@ -92,7 +92,7 @@ void test_xtensor_cubic(int i, std::vector<double> &values) {
         start = clock();
         for (int t = 0; t <= c; t += 1) {
             double u = rand() * c - c/2;
-            const double result = cubic_interp_eval(interp, u);
+            volatile const double result = cubic_interp_eval(interp, u);
         }
         end = clock();
         cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
@@ -126,7 +126,7 @@ void test_xtensor_bicubic(int i, double** values) {
             for (double t = 0; t <= iter; t += 1) {
                 double u = rand() * c - c/2;
                 double v = rand() * c - c/2;
-                const double result = bicubic_interp_eval(interp, u, v);
+                volatile const double result = bicubic_interp_eval(interp, u, v);
             }
         }
         end = clock();

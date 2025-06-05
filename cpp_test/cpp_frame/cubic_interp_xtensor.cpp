@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2024  Leo Singer
+ * Copyright (C) 2015-2024  Leo Singer & Jacob Davis
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,20 +34,15 @@
 
 struct cubic_interp {
     double f, t0, length;
-    double a[][4];
+    vd2f a;
 };
 
 
 struct bicubic_interp {
     vdf fx, x0, xlength;
-    vdf a[][4];
+    vd2f a;
 };
 
-
-/*
- * Calculate coefficients of the interpolating polynomial in the form
- *      a[0] * t^3 + a[1] * t^2 + a[2] * t + a[3]
- */
 static void cubic_interp_init_coefficients(
     double *a, const double *z, const double *z1)
 {
@@ -80,12 +75,13 @@ cubic_interp *cubic_interp_init(
     const std::vector<double> &data, int n, double tmin, double dt)
 {
     const int length = n + 6;
-    cubic_interp *interp = (cubic_interp*)malloc(sizeof(*interp) + length * sizeof(*interp->a));
+    cubic_interp *interp = new cubic_interp;
     if (LIKELY(interp))
     {
         interp->f = 1 / dt;
         interp->t0 = 3 - interp->f * tmin;
         interp->length = length;
+        interp->a = xt::zeros<double>({length, 4});
         for (int i = 0; i < length; i ++)
         {
             double z[4];
@@ -93,18 +89,24 @@ cubic_interp *cubic_interp_init(
             {
                 z[j] = data[clip(i + j - 4, 0, n - 1)];
             }
-            cubic_interp_init_coefficients(interp->a[i], z, z);
+            if (UNLIKELY(!isfinite(z[1] + z[2]))) {
+                xt::row(interp->a, i) = xt::xtensor<double, 1>{0, 0, 0, z[1]};
+            } else if (UNLIKELY(!isfinite(z[0] + z[3]))) {
+                xt::row(interp->a, i) = xt::xtensor<double, 1>{0, 0, z[2]-z[1], z[1]};
+            } else {
+                xt::row(interp->a, i) = xt::xtensor<double, 1>{1.5 * (z[1] - z[2]) + 0.5 * (z[3] - z[0]),
+                                                               z[0] - 2.5 * z[1] + 2 * z[2] - 0.5 * z[3], 
+                                                               0.5 * (z[2] - z[0]), z[1]};
+            }
         }
     }
     return interp;
 }
 
-
 void cubic_interp_free(cubic_interp *interp)
 {
     free(interp);
 }
-
 
 double cubic_interp_eval(const cubic_interp *interp, double t)
 {
@@ -119,8 +121,8 @@ double cubic_interp_eval(const cubic_interp *interp, double t)
     double ix = double_floor(x);
     x -= ix;
 
-    const double *a = interp->a[(int) ix];
-    return VCUBIC(a, x);
+    auto a = xt::row(interp->a, static_cast<int>(ix));
+    return t * (t * (t * a(0) + a(1)) + a(2)) + a(3);
 }
 
 // --------------
@@ -133,14 +135,13 @@ bicubic_interp *bicubic_interp_init(
 {
     const int slength = ns + 6;
     const int tlength = nt + 6;
-    bicubic_interp *interp = (bicubic_interp*)aligned_alloc(
-        alignof(bicubic_interp),
-        sizeof(*interp) + slength * tlength * sizeof(*interp->a));
+    bicubic_interp *interp = new bicubic_interp;
     if (LIKELY(interp))
     {
         interp->fx = {1/ds, 1/dt};
         interp->x0= {3 - interp->fx[0] * smin, 3 - interp->fx[1] * tmin};
         interp->xlength = {1.0 * slength, 1.0 * tlength};
+        interp->a = xt::zeros<double>({slength * tlength, 4});
 
         for (int is = 0; is < slength; is ++)
         {

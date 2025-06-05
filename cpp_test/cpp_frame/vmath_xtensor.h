@@ -19,11 +19,13 @@
 
 #include <xtensor/xtensor.hpp>
 #include <xtensor/xmath.hpp>
+#include <xtensor/xview.hpp>
 #include <math.h>
 #include <algorithm>
 
 // Define vector types using xtensor
 using vdf = xt::xtensor<double, 1>;
+using vd2f = xt::xtensor<double, 2>;
 
 // Vectorized math operations for vdf
 inline vdf vdf_min(const vdf& a, const vdf& b) {
@@ -71,4 +73,5 @@ inline int clip(int x, int a, int b) {
 inline double clip(double x, double a, double b) {
     return double_min(double_max(x, a), b);
 }
+
 
