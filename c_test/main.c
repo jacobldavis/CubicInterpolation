@@ -97,7 +97,7 @@ void test_cubic(int i, double* values) {
         start = clock();
         for (int t = 0; t <= c; t += 1) {
             double u = rand() * c - c/2;
-            const double result = cubic_interp_eval(interp, u);
+            volatile const double result = cubic_interp_eval(interp, u);
         }
         end = clock();
         cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
@@ -131,7 +131,7 @@ void test_bicubic(int i, double** values) {
             for (double t = 0; t <= iter; t += 1) {
                 double u = rand() * c - c/2;
                 double v = rand() * c - c/2;
-                const double result = bicubic_interp_eval(interp, u, v);
+                volatile const double result = bicubic_interp_eval(interp, u, v);
             }
         }
         end = clock();

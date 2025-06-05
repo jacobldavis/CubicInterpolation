@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -march=native
+CFLAGS = -O3 -march=native
 LDFLAGS = -lgsl -lm
 SRC = main.c $(wildcard c_frame/*.c)
 OBJ = $(SRC:.c=.o)
