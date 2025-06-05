@@ -20,45 +20,40 @@
 
 #pragma once
 
+#include <xtensor/xarray.hpp>
+#include <xtensor/xtensor.hpp>
+#include <xtensor/xadapt.hpp>
+#include <xtensor/xmath.hpp>
+
 static const int n_values[5] = {4, 10, 100, 400, 1000};
 static const int n_values_size = 5;
 
 /* 
- * Collects arrays of the sizes in n_values from 1dvalues.txt.
+ * Collects vectors of the sizes in n_values from 1dvalues.txt.
  */
-double **read_1dvalues();
+std::vector<std::vector<double>> read_1dvalues();
 
 /* 
- * Collects arrays of the sizes in n_values from 2dvalues.txt.
+ * Collects vectors of the sizes in n_values from 2dvalues.txt.
  */
-double ***read_2dvalues();
-
-/*
- * Frees the 1d values
- */
-void free1d(double** values);
-
-/*
- * Frees the 2d values
- */
-void free2d(double*** values);
+std::vector<std::vector<std::vector<double>>> read_2dvalues();
 
 /*
  * Runs the cubic interpolation at a particular value of n.
  */
-void test_cubic(int i, double* values);
+void test_xtensor_cubic(int i, xt::xtensor<double, 1> values);
 
 /*
  * Runs the cubic interpolation at every value of n in n_values.
  */
-void test_all_cubic(double** values);
+void test_all_xtensor_cubic(const std::vector<std::vector<double>> &values);
 
 /*
  * Runs the bicubic interpolation at a particular value of n.
  */
-void test_bicubic(int i, double** values);
+void test_xtensor_bicubic(int i, xt::xtensor<double, 3> values);
 
 /*
  * Runs the bicubic interpolation at every value of n in n_values.
  */
-void test_all_bicubic(double*** values);
+void test_all_xtensor_bicubic(const std::vector<std::vector<std::vector<double>>> &values);
