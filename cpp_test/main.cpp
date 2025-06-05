@@ -142,7 +142,6 @@ void test_all_xtensor_bicubic(double*** values) {
     // Runs the test for all values of n
     printf("\nTesting bicubic:\n");
     for (int i = 0; i < n_values_size; i++) {
-        printf("Hi");
         test_xtensor_bicubic(i, values[i]);
     }
 }

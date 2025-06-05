@@ -122,7 +122,7 @@ double cubic_interp_eval(const cubic_interp *interp, double t)
     x -= ix;
 
     auto a = xt::row(interp->a, static_cast<int>(ix));
-    return t * (t * (t * a(0) + a(1)) + a(2)) + a(3);
+    return x * (x * (x * a(0) + a(1)) + a(2)) + a(3);
 }
 
 // --------------
@@ -170,7 +170,7 @@ bicubic_interp *bicubic_interp_init(
                 {
                     cubic_interp_init_coefficients(a[js], a1[js], a1[3]);
                 }
-                memcpy(interp->a[is * slength + it], a, sizeof(a));
+                xt::row(interp->a, is * tlength + it) = xt::xtensor<double, 1>{a[0][0], a[0][1], a[0][2], a[0][3]};
             }
         }
     }
@@ -197,7 +197,14 @@ double bicubic_interp_eval(const bicubic_interp *interp, double s, double t)
     vdf ix = vdf_floor(x);
     x -= ix;
 
-    const vdf *a = interp->a[(int) (ix[0] * interp->xlength[0] + ix[1])];
-    vdf b = VCUBIC(a, x[1]);
-    return VCUBIC(b, x[0]);
+    int idx = static_cast<int>(ix[0] * interp->xlength[1] + ix[1]);
+    auto coeffs = xt::row(interp->a, idx);
+
+    xt::xtensor<double, 1> b = xt::zeros<double>({4});
+    for (int i = 0; i < 4; ++i) {
+        const double* row = &coeffs(i * 4);  
+        b(i) = VCUBIC(row, x[1]);            
+    }
+
+    return VCUBIC(b.data(), x[0]);
 }
