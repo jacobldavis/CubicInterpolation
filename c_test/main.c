@@ -86,17 +86,25 @@ double ***read_2dvalues() {
 }
 
 void test_cubic(int i, double* values) {
+    // Initialize time recording variables and cubic_interp
     clock_t start, end;
     double cpu_time_used;
     cubic_interp *interp = cubic_interp_init(values, n_values[i], -1, 1);
-    start = clock();
-    for (double t = -1000; t <= 1000; t += 0.01) {
-        double u = rand() * 2000 - 1000;
-        const double result = cubic_interp_eval(interp, u);
+
+    // Iterate through the interpolation with varying loop operation counts
+    int c = 10000;
+    for (int m = 1; m < 5; m++) {
+        start = clock();
+        for (int t = 0; t <= c; t += 1) {
+            double u = rand() * c - c/2;
+            const double result = cubic_interp_eval(interp, u);
+        }
+        end = clock();
+        cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+        printf("Time for size %d and iterations %d is %lf\n", n_values[i], c, cpu_time_used);
+        c *= 10;
     }
-    end = clock();
-    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("Time for size %d is %lf\n", n_values[i], cpu_time_used);
+    printf("\n");
     cubic_interp_free(interp);
 }
 
@@ -109,20 +117,29 @@ void test_all_cubic(double** values) {
 }
 
 void test_bicubic(int i, double** values) {
+    // Initialize time recording variables and bicubic_interp
     clock_t start, end;
     double cpu_time_used;
     bicubic_interp *interp = bicubic_interp_init(*values, n_values[i], n_values[i], -1, -1, 1, 1);
-    start = clock();
-    for (double s = -5; s <= 2; s += 0.1) {
-        for (double t = -5; t <= 1; t += 0.1) {
-            double u = rand() * 10 - 5;
-            double v = rand() * 10 - 5;
-            const double result = bicubic_interp_eval(interp, u, v);
+
+    // Iterate through the interpolation with varying loop operation counts
+    int c = 10000;
+    for (int m = 1; m < 5; m++) {
+        int iter = sqrt(c);
+        start = clock();
+        for (double s = 0; s <= iter; s += 1) {
+            for (double t = 0; t <= iter; t += 1) {
+                double u = rand() * c - c/2;
+                double v = rand() * c - c/2;
+                const double result = bicubic_interp_eval(interp, u, v);
+            }
         }
+        end = clock();
+        cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+        printf("Time for size %d and iterations %d is %lf\n", n_values[i], c, cpu_time_used);
+        c *= 10;
     }
-    end = clock();
-    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("Time for size %d is %lf\n", n_values[i], cpu_time_used);
+    printf("\n");
     bicubic_interp_free(interp);
 }
 
