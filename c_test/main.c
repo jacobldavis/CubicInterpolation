@@ -65,7 +65,7 @@ double **read_1dvalues() {
 double ***read_2dvalues() {
     // Allocates memory for values based on n_values.
     double*** values = (double***)malloc(n_values_size * sizeof(double**));
-    for (int i = 0; i < n_values[i]; i++) {
+    for (int i = 0; i < n_values_size; i++) {
         values[i] = (double**)malloc(n_values[i] * sizeof(double*));
         for (int j = 0; j < n_values[i]; j++) {
             values[i][j] = (double*)malloc(n_values[i] * sizeof(double));

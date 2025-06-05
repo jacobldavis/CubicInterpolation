@@ -76,9 +76,8 @@ static void cubic_interp_init_coefficients(
     }
 }
 
-// Returns an array of cubic_interp structs based on the input data array
 cubic_interp *cubic_interp_init(
-    const double *data, int n, double tmin, double dt)
+    const std::vector<double> &data, int n, double tmin, double dt)
 {
     const int length = n + 6;
     cubic_interp *interp = (cubic_interp*)malloc(sizeof(*interp) + length * sizeof(*interp->a));
@@ -139,12 +138,9 @@ bicubic_interp *bicubic_interp_init(
         sizeof(*interp) + slength * tlength * sizeof(*interp->a));
     if (LIKELY(interp))
     {
-        interp->fx[0] = 1 / ds;
-        interp->fx[1] = 1 / dt;
-        interp->x0[0] = 3 - interp->fx[0] * smin;
-        interp->x0[1] = 3 - interp->fx[1] * tmin;
-        interp->xlength[0] = slength;
-        interp->xlength[1] = tlength;
+        interp->fx = {1/ds, 1/dt};
+        interp->x0= {3 - interp->fx[0] * smin, 3 - interp->fx[1] * tmin};
+        interp->xlength = {1.0 * slength, 1.0 * tlength};
 
         for (int is = 0; is < slength; is ++)
         {

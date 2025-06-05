@@ -1,20 +1,21 @@
 CC = g++
 CFLAGS = -O3 -march=native
-LDFLAGS = -lgsl -lm
-SRC = main.c $(wildcard cpp_frame/*.cpp)
-OBJ = $(SRC:.c=.o)
+LIBS = -lgsl -lm
+SRC = main.cpp
+CPP_FRAME_SRC = $(wildcard cpp_frame/*.cpp)
+OBJ = main.o $(CPP_FRAME_SRC:.cpp=.o)
 TARGET = main.out
 
 all: $(TARGET)
 
 $(TARGET): $(OBJ)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
 
-%.o: %.c
+%.o: %.cpp
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
 	rm -f $(OBJ) $(TARGET)
 
 run:
-	./main.out
+	./$(TARGET)

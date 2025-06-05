@@ -30,12 +30,13 @@
 int main(int argc, char **argv) {
     // Read the files for input values
     std::vector<std::vector<double>> onevalues = read_1dvalues();
-    std::vector<std::vector<std::vector<double>>> twovalues = read_2dvalues();
+    double ***twovalues = read_2dvalues();
 
     // Execute the tests for onevalues and two values
     srand(time(NULL));
     test_all_xtensor_cubic(onevalues);
     test_all_xtensor_bicubic(twovalues);
+    free2d(twovalues);
 
     return 0;
 }
@@ -47,21 +48,29 @@ std::vector<std::vector<double>> read_1dvalues() {
     for (int i = 0; i < n_values_size; i++) {
         values.push_back({});
         for (int j = 0; j < n_values[i]; j++) {
-            int x = fscanf(file, "%lf, ", &values[i][j]);
+            double a;
+            int x = fscanf(file, "%lf, ", &a);
+            values[i].push_back(a);
         }
     }
 
     return values;
 }
 
-std::vector<std::vector<std::vector<double>>> read_2dvalues() {
+double ***read_2dvalues() {
+    // Allocates memory for values based on n_values.
+    double*** values = (double***)malloc(n_values_size * sizeof(double**));
+    for (int i = 0; i < n_values_size; i++) {
+        values[i] = (double**)malloc(n_values[i] * sizeof(double*));
+        for (int j = 0; j < n_values[i]; j++) {
+            values[i][j] = (double*)malloc(n_values[i] * sizeof(double));
+        }
+    }
+
     // Reads and returns the values from 1dvalues.txt into values.
-    std::vector<std::vector<std::vector<double>>> values;
     FILE *file = fopen("../2dvalues.txt", "r");
     for (int i = 0; i < n_values_size; i++) {
-        values.push_back({});
         for (int j = 0; j < n_values[i]; j++) {
-            values[i].push_back({});
             for (int k = 0; k < n_values[i]; k++) {
                 int x = fscanf(file, "%lf, ", &values[i][j][k]);
             }
@@ -71,7 +80,7 @@ std::vector<std::vector<std::vector<double>>> read_2dvalues() {
     return values;
 }
 
-void test_xtensor_cubic(int i, xt::xtensor<double, 1> values) {
+void test_xtensor_cubic(int i, std::vector<double> &values) {
     // Initialize time recording variables and cubic_interp
     clock_t start, end;
     double cpu_time_used;
@@ -94,15 +103,15 @@ void test_xtensor_cubic(int i, xt::xtensor<double, 1> values) {
     cubic_interp_free(interp);
 }
 
-void test_all_xtensor_cubic(const std::vector<std::vector<double>> &values) {
+void test_all_xtensor_cubic(std::vector<std::vector<double>> &values) {
     // Runs the test for all values of n
     printf("\nTesting cubic:\n");
     for (int i = 0; i < n_values_size; i++) {
-        test_xtensor_cubic(i, from_vector_1d_adapt(values[i]));
+        test_xtensor_cubic(i, values[i]);
     }
 }
 
-void test_xtensor_bicubic(int i, xt::xtensor<double, 3> values) {
+void test_xtensor_bicubic(int i, double** values) {
     // Initialize time recording variables and bicubic_interp
     clock_t start, end;
     double cpu_time_used;
@@ -129,28 +138,21 @@ void test_xtensor_bicubic(int i, xt::xtensor<double, 3> values) {
     bicubic_interp_free(interp);
 }
 
-void test_all_xtensor_bicubic(const std::vector<std::vector<std::vector<double>>> &values) {
+void test_all_xtensor_bicubic(double*** values) {
     // Runs the test for all values of n
     printf("\nTesting bicubic:\n");
     for (int i = 0; i < n_values_size; i++) {
-        test_xtensor_bicubic(i, from_vector_2d(values[i]));
+        printf("Hi");
+        test_xtensor_bicubic(i, values[i]);
     }
 }
 
-xt::xtensor<double, 2> from_vector_2d(const std::vector<std::vector<double>>& vec) {
-    size_t rows = vec.size();
-    size_t cols = rows > 0 ? vec[0].size() : 0;
-    xt::xtensor<double, 2> result({rows, cols});
-
-    for (size_t i = 0; i < rows; ++i) {
-        for (size_t j = 0; j < cols; ++j) {
-            result(i, j) = vec[i][j];
+void free2d(double*** values) {
+    for (int i = 0; i < n_values_size; i++) {
+        for (int j = 0; j < n_values[i]; j++) {
+            free(values[i][j]);
         }
+        free(values[i]);
     }
-
-    return result;
-}
-
-xt::xtensor<double, 1> from_vector_1d_adapt(const std::vector<double>& vec) {
-    return xt::adapt(vec.data(), {vec.size()});
+    free(values);
 }

@@ -17,13 +17,13 @@
 
 #pragma once
 
-#include <xtensor/xarray.hpp>
+#include <xtensor/xtensor.hpp>
 #include <xtensor/xmath.hpp>
 #include <math.h>
 #include <algorithm>
 
 // Define vector types using xtensor
-using vdf = xt::xarray<double, xt::layout_type::row_major>;
+using vdf = xt::xtensor<double, 1>;
 
 // Vectorized math operations for vdf
 inline vdf vdf_min(const vdf& a, const vdf& b) {

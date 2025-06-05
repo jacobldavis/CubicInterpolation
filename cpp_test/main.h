@@ -34,26 +34,31 @@ static const int n_values_size = 5;
 std::vector<std::vector<double>> read_1dvalues();
 
 /* 
- * Collects vectors of the sizes in n_values from 2dvalues.txt.
+ * Collects arrays of the sizes in n_values from 2dvalues.txt.
  */
-std::vector<std::vector<std::vector<double>>> read_2dvalues();
+double ***read_2dvalues();
 
 /*
  * Runs the cubic interpolation at a particular value of n.
  */
-void test_xtensor_cubic(int i, xt::xtensor<double, 1> values);
+void test_xtensor_cubic(int i, std::vector<double> &values);
 
 /*
  * Runs the cubic interpolation at every value of n in n_values.
  */
-void test_all_xtensor_cubic(const std::vector<std::vector<double>> &values);
+void test_all_xtensor_cubic(std::vector<std::vector<double>> &values);
 
 /*
  * Runs the bicubic interpolation at a particular value of n.
  */
-void test_xtensor_bicubic(int i, xt::xtensor<double, 3> values);
+void test_xtensor_bicubic(int i, double** values);
 
 /*
  * Runs the bicubic interpolation at every value of n in n_values.
  */
-void test_all_xtensor_bicubic(const std::vector<std::vector<std::vector<double>>> &values);
+void test_all_xtensor_bicubic(double*** values);
+
+/*
+ * Frees the 2d values
+ */
+void free2d(double*** values);
