@@ -99,10 +99,5 @@ Eigen::VectorXd cubic_interp_eval_eigen(const cubic_interp *interp, Eigen::Vecto
         result[i] = ((coeffs[0] * ti + coeffs[1]) * ti + coeffs[2]) * ti + coeffs[3];
     }
 
-    // return (t * (t * 
-    //        (t * xt::view(interp->a, xt::keep(ix), 0)
-    //         + xt::view(interp->a, xt::keep(ix), 1))
-    //         + xt::view(interp->a, xt::keep(ix), 2))
-    //         + xt::view(interp->a, xt::keep(ix), 3));
-    return t;
+    return result;
 }
