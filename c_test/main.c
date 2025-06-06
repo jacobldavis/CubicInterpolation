@@ -28,16 +28,16 @@
 #include <time.h>
 
 int main(int argc, char **argv) {
-    // Read the files for input values
+    // Reads the files for input values
     double **onevalues = read_1dvalues();
     double ***twovalues = read_2dvalues();
 
-    // Execute the tests for onevalues and two values
+    // Executes the tests for onevalues and two values
     srand(time(NULL));
     test_all_cubic(onevalues);
     test_all_bicubic(twovalues);
 
-    // Free onevalues and twovalues
+    // Frees onevalues and twovalues
     free1d(onevalues);
     free2d(twovalues);
 
@@ -86,23 +86,31 @@ double ***read_2dvalues() {
 }
 
 void test_cubic(int i, double* values) {
-    // Initialize time recording variables and cubic_interp
+    // Initializes time recording variables and cubic_interp
     clock_t start, end;
     double cpu_time_used;
     cubic_interp *interp = cubic_interp_init(values, n_values[i], -1, 1);
 
-    // Iterate through the interpolation with varying loop operation counts
+    // Iterates through the interpolation with varying loop operation counts
     int c = 10000;
     for (int m = 1; m < 5; m++) {
+        // Precomputes random values
+        double* random = (double*)malloc(c * sizeof(double));
+        for (int k = 0; k < c; k++) {
+            random[k] = rand() * c - c/2;
+        }
+
+        // Performs benchmark
         start = clock();
         for (int t = 0; t <= c; t += 1) {
-            double u = rand() * c - c/2;
-            volatile const double result = cubic_interp_eval(interp, u);
+            volatile const double result = cubic_interp_eval(interp, random[t]);
         }
         end = clock();
         cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
         printf("Time for size %d and iterations %d is %lf\n", n_values[i], c, cpu_time_used);
+
         c *= 10;
+        free(random);
     }
     printf("\n");
     cubic_interp_free(interp);
@@ -117,27 +125,37 @@ void test_all_cubic(double** values) {
 }
 
 void test_bicubic(int i, double** values) {
-    // Initialize time recording variables and bicubic_interp
+    // Initializes time recording variables and bicubic_interp
     clock_t start, end;
     double cpu_time_used;
     bicubic_interp *interp = bicubic_interp_init(*values, n_values[i], n_values[i], -1, -1, 1, 1);
 
-    // Iterate through the interpolation with varying loop operation counts
+    // Iterates through the interpolation with varying loop operation counts
     int c = 10000;
     for (int m = 1; m < 5; m++) {
+        // Precomputes random values
+        double* randomu = (double*)malloc(c * sizeof(double));
+        double* randomv = (double*)malloc(c* sizeof(double));
+        for (int k = 0; k < c; k++) {
+            randomu[k] = rand() * c - c/2;
+            randomv[k] = rand() * c - c/2;
+        }
+        
+        // Performs benchmark
         int iter = sqrt(c);
         start = clock();
-        for (double s = 0; s <= iter; s += 1) {
-            for (double t = 0; t <= iter; t += 1) {
-                double u = rand() * c - c/2;
-                double v = rand() * c - c/2;
-                volatile const double result = bicubic_interp_eval(interp, u, v);
+        for (int s = 0; s <= iter; s += 1) {
+            for (int t = 0; t <= iter; t += 1) {
+                volatile const double result = bicubic_interp_eval(interp, randomu[s * iter + t], randomv[s * iter + t]);
             }
         }
         end = clock();
         cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
         printf("Time for size %d and iterations %d is %lf\n", n_values[i], c, cpu_time_used);
+
         c *= 10;
+        free(randomu);
+        free(randomv);
     }
     printf("\n");
     bicubic_interp_free(interp);
