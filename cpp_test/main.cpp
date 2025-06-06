@@ -94,13 +94,11 @@ void test_cubic_xtensor(int i, double* values) {
     int c = 10000;
     for (int m = 1; m < 5; m++) {
         // Precomputes random values
-        xt::xtensor<double, 1> random = xt::random::rand(n_values[i], 0, c);
+        xt::xtensor<double, 1> random = xt::random::rand(c, 0, c);
 
         // Performs benchmark
         start = clock();
-        for (int t = 0; t <= c; t += 1) {
-            volatile const double result = cubic_interp_eval(interp, random);
-        }
+        volatile const double result = cubic_interp_eval(interp, random);
         end = clock();
         cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
         printf("Time for size %d and iterations %d is %lf\n", n_values[i], c, cpu_time_used);
@@ -129,17 +127,12 @@ void test_bicubic_xtensor(int i, double** values) {
     int c = 10000;
     for (int m = 1; m < 5; m++) {
         // Precomputes random values
-        xt::xtensor<double, 1> randomu = xt::random::rand(n_values[i], 0, c);
-        xt::xtensor<double, 1> randomv = xt::random::rand(n_values[i], 0, c);
+        xt::xtensor<double, 1> randomu = xt::random::rand(c, 0, c);
+        xt::xtensor<double, 1> randomv = xt::random::rand(c, 0, c);
 
         // Performs benchmark
-        int iter = sqrt(c);
         start = clock();
-        for (int s = 0; s <= iter; s += 1) {
-            for (int t = 0; t <= iter; t += 1) {
-                volatile const double result = bicubic_interp_eval(interp, randomu, randomv);
-            }
-        }
+        volatile const double result = bicubic_interp_eval(interp, randomu, randomv);
         end = clock();
         cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
         printf("Time for size %d and iterations %d is %lf\n", n_values[i], c, cpu_time_used);
