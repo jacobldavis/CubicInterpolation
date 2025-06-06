@@ -41,14 +41,12 @@
 
 #pragma once
 
-#include <vector>
-
 typedef struct cubic_interp cubic_interp;
 typedef struct bicubic_interp bicubic_interp;
 
 __attribute__ ((malloc))
 cubic_interp *cubic_interp_init(
-    const std::vector<double> &data, int n, double tmin, double dt);
+    const double *data, int n, double tmin, double dt);
 
 void cubic_interp_free(cubic_interp *interp);
 
@@ -66,3 +64,4 @@ __attribute__ ((pure))
 double bicubic_interp_eval(const bicubic_interp *interp, double s, double t);
 
 int cubic_interp_test(void);
+

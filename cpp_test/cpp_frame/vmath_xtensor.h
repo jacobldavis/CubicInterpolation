@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025  Leo Singer & Jacob Davis
+ * Copyright (C) 2020  Leo Singer
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,61 +17,100 @@
 
 #pragma once
 
-#include <xtensor/xtensor.hpp>
-#include <xtensor/xmath.hpp>
-#include <xtensor/xview.hpp>
 #include <math.h>
-#include <algorithm>
 
-// Define vector types using xtensor
-using vdf = xt::xtensor<double, 1>;
-using vd2f = xt::xtensor<double, 2>;
+/* Vector types (gcc/clang/icc vector extension to the C language) */
 
-// Vectorized math operations for vdf
-inline vdf vdf_min(const vdf& a, const vdf& b) {
-    return xt::minimum(a, b);
+typedef double v2df __attribute__ ((vector_size (2 * sizeof(double))));
+typedef double v4df __attribute__ ((vector_size (4 * sizeof(double))));
+
+
+/* Vectorized math functions using x86-64 intrinsics if available */
+
+#ifdef __x86_64__
+#include <immintrin.h>
+#endif
+
+#define V2DF_BINARY_OP(func, scalarfunc) \
+static v2df v2df_ ## func(v2df a, v2df b) \
+{ \
+    v2df result; \
+    for (int i = 0; i < 2; i ++) \
+        result[i] = scalarfunc(a[i], b[i]); \
+    return result; \
 }
 
-inline vdf vdf_max(const vdf& a, const vdf& b) {
-    return xt::maximum(a, b);
+#define V2DF_UNARY_OP(func, scalarfunc) \
+static v2df v2df_ ## func(v2df a) \
+{ \
+    v2df result; \
+    for (int i = 0; i < 2; i ++) \
+        result[i] = scalarfunc(a[i]); \
+    return result; \
 }
 
-inline vdf vdf_floor(const vdf& a) {
-    return xt::floor(a);
+#ifdef __SSE2__
+static v2df v2df_min(v2df a, v2df b) { return _mm_min_pd(a, b); }
+static v2df v2df_max(v2df a, v2df b) { return _mm_max_pd(a, b); }
+#else
+V2DF_BINARY_OP(min, fmin)
+V2DF_BINARY_OP(max, fmax)
+#endif
+
+#ifdef __SSE4_1__
+static v2df v2df_floor(v2df a) { return _mm_floor_pd(a); }
+#else
+V2DF_UNARY_OP(floor, floor)
+#endif
+
+
+/* C11 generics for selected math functions */
+
+static int int_min(int a, int b)
+{
+    return a < b ? a : b;
 }
 
-// Scalar operations for int and double
-inline int int_min(int a, int b) {
-    return std::min(a, b);
+static int int_max(int a, int b)
+{
+    return a > b ? a : b;
 }
 
-inline int int_max(int a, int b) {
-    return std::max(a, b);
+// Templates to replace Generic implementations in C
+
+template<typename T>
+T VMIN(T a, T b) {
+    if constexpr (std::is_same_v<T, v2df>) {
+        return v2df_min(a, b);
+    } else if constexpr (std::is_same_v<T, int>) {
+        return std::min(a, b);
+    } else if constexpr (std::is_same_v<T, double>) {
+        return std::min(a, b);
+    }
 }
 
-inline double double_min(double a, double b) {
-    return std::fmin(a, b);
+template<typename T>
+T VMAX(T a, T b) {
+    if constexpr (std::is_same_v<T, v2df>) {
+        return v2df_max(a, b);
+    } else if constexpr (std::is_same_v<T, int>) {
+        return std::max(a, b);
+    } else if constexpr (std::is_same_v<T, double>) {
+        return std::max(a, b);
+    }
 }
 
-inline double double_max(double a, double b) {
-    return std::fmax(a, b);
+template<typename T>
+T VCLIP(T x, T a, T b) {
+    return VMIN(VMAX(x, a), b);
 }
 
-inline double double_floor(double a) {
-    return std::floor(a);
+template<typename T>
+T VFLOOR(T a) {
+    if constexpr (std::is_same_v<T, v2df>) {
+        return v2df_floor(a);
+    } else if constexpr (std::is_same_v<T, double>) {
+        return std::floor(a);
+    }
 }
-
-// Clip operations
-inline vdf clip(const vdf& x, const vdf& a, const vdf& b) {
-    return vdf_min(vdf_max(x, a), b);
-}
-
-inline int clip(int x, int a, int b) {
-    return int_min(int_max(x, a), b);
-}
-
-inline double clip(double x, double a, double b) {
-    return double_min(double_max(x, a), b);
-}
-
 

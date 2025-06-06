@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2024  Leo Singer & Jacob Davis
+ * Copyright (C) 2015-2024  Leo Singer
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,17 +32,23 @@
 
 #define VCUBIC(a, t) (t * (t * (t * a[0] + a[1]) + a[2]) + a[3])
 
+
 struct cubic_interp {
     double f, t0, length;
-    vd2f a;
+    double a[][4];
 };
 
 
 struct bicubic_interp {
-    vdf fx, x0, xlength;
-    vd2f a;
+    v2df fx, x0, xlength;
+    v4df a[][4];
 };
 
+
+/*
+ * Calculate coefficients of the interpolating polynomial in the form
+ *      a[0] * t^3 + a[1] * t^2 + a[2] * t + a[3]
+ */
 static void cubic_interp_init_coefficients(
     double *a, const double *z, const double *z1)
 {
@@ -71,42 +77,36 @@ static void cubic_interp_init_coefficients(
     }
 }
 
+// Returns an array of cubic_interp structs based on the input data array
 cubic_interp *cubic_interp_init(
-    const std::vector<double> &data, int n, double tmin, double dt)
+    const double *data, int n, double tmin, double dt)
 {
     const int length = n + 6;
-    cubic_interp *interp = new cubic_interp;
+    cubic_interp *interp = (cubic_interp*)malloc(sizeof(*interp) + length * sizeof(*interp->a));
     if (LIKELY(interp))
     {
         interp->f = 1 / dt;
         interp->t0 = 3 - interp->f * tmin;
         interp->length = length;
-        interp->a = xt::zeros<double>({length, 4});
         for (int i = 0; i < length; i ++)
         {
             double z[4];
             for (int j = 0; j < 4; j ++)
             {
-                z[j] = data[clip(i + j - 4, 0, n - 1)];
+                z[j] = data[VCLIP(i + j - 4, 0, n - 1)];
             }
-            if (UNLIKELY(!isfinite(z[1] + z[2]))) {
-                xt::row(interp->a, i) = xt::xtensor<double, 1>{0, 0, 0, z[1]};
-            } else if (UNLIKELY(!isfinite(z[0] + z[3]))) {
-                xt::row(interp->a, i) = xt::xtensor<double, 1>{0, 0, z[2]-z[1], z[1]};
-            } else {
-                xt::row(interp->a, i) = xt::xtensor<double, 1>{1.5 * (z[1] - z[2]) + 0.5 * (z[3] - z[0]),
-                                                               z[0] - 2.5 * z[1] + 2 * z[2] - 0.5 * z[3], 
-                                                               0.5 * (z[2] - z[0]), z[1]};
-            }
+            cubic_interp_init_coefficients(interp->a[i], z, z);
         }
     }
     return interp;
 }
 
+
 void cubic_interp_free(cubic_interp *interp)
 {
     free(interp);
 }
+
 
 double cubic_interp_eval(const cubic_interp *interp, double t)
 {
@@ -116,13 +116,13 @@ double cubic_interp_eval(const cubic_interp *interp, double t)
     double x = t, xmin = 0.0, xmax = interp->length - 1.0;
     x *= interp->f;
     x += interp->t0;
-    x = clip(x, xmin, xmax);
+    x = VCLIP(x, xmin, xmax);
 
-    double ix = double_floor(x);
+    double ix = VFLOOR(x);
     x -= ix;
 
-    auto a = xt::row(interp->a, static_cast<int>(ix));
-    return x * (x * (x * a(0) + a(1)) + a(2)) + a(3);
+    const double *a = interp->a[(int) ix];
+    return VCUBIC(a, x);
 }
 
 // --------------
@@ -135,13 +135,17 @@ bicubic_interp *bicubic_interp_init(
 {
     const int slength = ns + 6;
     const int tlength = nt + 6;
-    bicubic_interp *interp = new bicubic_interp;
+    bicubic_interp *interp = (bicubic_interp*)aligned_alloc(
+        alignof(bicubic_interp),
+        sizeof(*interp) + slength * tlength * sizeof(*interp->a));
     if (LIKELY(interp))
     {
-        interp->fx = {1/ds, 1/dt};
-        interp->x0= {3 - interp->fx[0] * smin, 3 - interp->fx[1] * tmin};
-        interp->xlength = {1.0 * slength, 1.0 * tlength};
-        interp->a = xt::zeros<double>({slength * tlength, 4});
+        interp->fx[0] = 1 / ds;
+        interp->fx[1] = 1 / dt;
+        interp->x0[0] = 3 - interp->fx[0] * smin;
+        interp->x0[1] = 3 - interp->fx[1] * tmin;
+        interp->xlength[0] = slength;
+        interp->xlength[1] = tlength;
 
         for (int is = 0; is < slength; is ++)
         {
@@ -151,10 +155,10 @@ bicubic_interp *bicubic_interp_init(
                 for (int js = 0; js < 4; js ++)
                 {
                     double z[4];
-                    int ks = clip(is + js - 4, 0, ns - 1);
+                    int ks = VCLIP(is + js - 4, 0, ns - 1);
                     for (int jt = 0; jt < 4; jt ++)
                     {
-                        int kt = clip(it + jt - 4, 0, nt - 1);
+                        int kt = VCLIP(it + jt - 4, 0, nt - 1);
                         z[jt] = data[ks * ns + kt];
                     }
                     cubic_interp_init_coefficients(a[js], z, z);
@@ -170,7 +174,7 @@ bicubic_interp *bicubic_interp_init(
                 {
                     cubic_interp_init_coefficients(a[js], a1[js], a1[3]);
                 }
-                xt::row(interp->a, is * tlength + it) = xt::xtensor<double, 1>{a[0][0], a[0][1], a[0][2], a[0][3]};
+                memcpy(interp->a[is * slength + it], a, sizeof(a));
             }
         }
     }
@@ -189,22 +193,15 @@ double bicubic_interp_eval(const bicubic_interp *interp, double s, double t)
     if (UNLIKELY(isnan(s) || isnan(t)))
         return s + t;
 
-    vdf x = {s, t}, xmin = {0.0, 0.0}, xmax = interp->xlength - 1.0;
+    v2df x = {s, t}, xmin = {0.0, 0.0}, xmax = interp->xlength - 1.0;
     x *= interp->fx;
     x += interp->x0;
-    x = clip(x, xmin, xmax);
+    x = VCLIP(x, xmin, xmax);
 
-    vdf ix = vdf_floor(x);
+    v2df ix = VFLOOR(x);
     x -= ix;
 
-    int idx = static_cast<int>(ix[0] * interp->xlength[1] + ix[1]);
-    auto coeffs = xt::row(interp->a, idx);
-
-    xt::xtensor<double, 1> b = xt::zeros<double>({4});
-    for (int i = 0; i < 4; ++i) {
-        const double* row = &coeffs(i * 4);  
-        b(i) = VCUBIC(row, x[1]);            
-    }
-
-    return VCUBIC(b.data(), x[0]);
+    const v4df *a = interp->a[(int) (ix[0] * interp->xlength[0] + ix[1])];
+    v4df b = VCUBIC(a, x[1]);
+    return VCUBIC(b, x[0]);
 }
