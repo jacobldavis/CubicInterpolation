@@ -17,7 +17,7 @@
 
 #include "cubic_interp_xtensor.h"
 #include "branch_prediction.h"
-#include "vmath_xtensor.h"
+#include "vmath.h"
 #include <math.h>
 #include <stdalign.h>
 #include <stdlib.h>
@@ -37,39 +37,6 @@ struct cubic_interp {
     double f, t0, length;
     xt::xtensor<double, 2> a;
 };
-
-
-/*
- * Calculate coefficients of the interpolating polynomial in the form
- *      a[0] * t^3 + a[1] * t^2 + a[2] * t + a[3]
- */
-static void cubic_interp_init_coefficients(
-    double *a, const double *z, const double *z1)
-{
-    if (UNLIKELY(!isfinite(z1[1] + z1[2])))
-    {
-        /* If either of the inner grid points are NaN or infinite,
-         * then fall back to nearest-neighbor interpolation. */
-        a[0] = 0;
-        a[1] = 0;
-        a[2] = 0;
-        a[3] = z[1];
-    } else if (UNLIKELY(!isfinite(z1[0] + z1[3]))) {
-        /* If either of the outer grid points are NaN or infinite,
-         * then fall back to linear interpolation. */
-        a[0] = 0;
-        a[1] = 0;
-        a[2] = z[2] - z[1];
-        a[3] = z[1];
-    } else {
-        /* Otherwise, all of the grid points are finite.
-         * Use cubic interpolation. */
-        a[0] = 1.5 * (z[1] - z[2]) + 0.5 * (z[3] - z[0]);
-        a[1] = z[0] - 2.5 * z[1] + 2 * z[2] - 0.5 * z[3];
-        a[2] = 0.5 * (z[2] - z[0]);
-        a[3] = z[1];
-    }
-}
 
 // Returns an array of cubic_interp structs based on the input data array
 cubic_interp *cubic_interp_init_xtensor(

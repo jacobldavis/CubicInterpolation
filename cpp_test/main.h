@@ -52,3 +52,13 @@ void test_cubic_xtensor(int i, double* values, FILE* fp);
  * Runs the cubic interpolation at every value of n in n_values.
  */
 void test_all_cubic_xtensor(double** values, FILE* fp);
+
+/*
+ * Runs the cubic interpolation at a particular value of n.
+ */
+void test_cubic_eigen(int i, double* values, FILE* fp);
+
+/*
+ * Runs the cubic interpolation at every value of n in n_values.
+ */
+void test_all_cubic_eigen(double** values, FILE* fp);

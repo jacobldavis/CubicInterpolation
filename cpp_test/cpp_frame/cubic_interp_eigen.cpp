@@ -17,7 +17,7 @@
 
 #include "cubic_interp_eigen.h"
 #include "branch_prediction.h"
-#include "vmath_eigen.h"
+#include "vmath.h"
 #include <math.h>
 #include <stdalign.h>
 #include <stdlib.h>
@@ -35,41 +35,8 @@
 
 struct cubic_interp {
     double f, t0, length;
-    xt::xtensor<double, 2> a;
+    Eigen::MatrixXf a;
 };
-
-
-/*
- * Calculate coefficients of the interpolating polynomial in the form
- *      a[0] * t^3 + a[1] * t^2 + a[2] * t + a[3]
- */
-static void cubic_interp_init_coefficients(
-    double *a, const double *z, const double *z1)
-{
-    if (UNLIKELY(!isfinite(z1[1] + z1[2])))
-    {
-        /* If either of the inner grid points are NaN or infinite,
-         * then fall back to nearest-neighbor interpolation. */
-        a[0] = 0;
-        a[1] = 0;
-        a[2] = 0;
-        a[3] = z[1];
-    } else if (UNLIKELY(!isfinite(z1[0] + z1[3]))) {
-        /* If either of the outer grid points are NaN or infinite,
-         * then fall back to linear interpolation. */
-        a[0] = 0;
-        a[1] = 0;
-        a[2] = z[2] - z[1];
-        a[3] = z[1];
-    } else {
-        /* Otherwise, all of the grid points are finite.
-         * Use cubic interpolation. */
-        a[0] = 1.5 * (z[1] - z[2]) + 0.5 * (z[3] - z[0]);
-        a[1] = z[0] - 2.5 * z[1] + 2 * z[2] - 0.5 * z[3];
-        a[2] = 0.5 * (z[2] - z[0]);
-        a[3] = z[1];
-    }
-}
 
 // Returns an array of cubic_interp structs based on the input data array
 cubic_interp *cubic_interp_init_eigen(
@@ -82,7 +49,7 @@ cubic_interp *cubic_interp_init_eigen(
         interp->f = 1 / dt;
         interp->t0 = 3 - interp->f * tmin;
         interp->length = length;
-        interp->a = xt::eval(xt::zeros<double>({length, 4}));
+        interp->a.resize(length, 4);
         for (int i = 0; i < length; i ++)
         {
             double z[4];
@@ -91,13 +58,13 @@ cubic_interp *cubic_interp_init_eigen(
                 z[j] = data[VCLIP(i + j - 4, 0, n - 1)];
             }
             if (UNLIKELY(!isfinite(z[1] + z[2]))) {
-                xt::row(interp->a, i) = xt::eval(xt::xtensor<double, 1>{0, 0, 0, z[1]});
+                interp->a.row(i) = Eigen::RowVector4f(0, 0, 0, z[1]);
             } else if (UNLIKELY(!isfinite(z[0] + z[3]))) {
-                xt::row(interp->a, i) = xt::eval(xt::xtensor<double, 1>{0, 0, z[2]-z[1], z[1]});
+                interp->a.row(i) = Eigen::RowVector4f(0, 0, z[2]-z[1], z[1]);
             } else {
-                xt::row(interp->a, i) = xt::eval(xt::xtensor<double, 1>{1.5 * (z[1] - z[2]) + 0.5 * (z[3] - z[0]),
-                                                               z[0] - 2.5 * z[1] + 2 * z[2] - 0.5 * z[3], 
-                                                               0.5 * (z[2] - z[0]), z[1]});
+                interp->a.row(i) = Eigen::RowVector4f(1.5 * (z[1] - z[2]) + 0.5 * (z[3] - z[0]), 
+                                                      z[0] - 2.5 * z[1] + 2 * z[2] - 0.5 * z[3], 
+                                                      0.5 * (z[2] - z[0]), z[1]);
             }
         }
     }
@@ -111,21 +78,31 @@ void cubic_interp_free_eigen(cubic_interp *interp)
 }
 
 
-xt::xtensor<double, 1> cubic_interp_eval_eigen(const cubic_interp *interp, xt::xtensor<double, 1> t)
+Eigen::VectorXd cubic_interp_eval_eigen(const cubic_interp *interp, Eigen::VectorXd t)
 {
     double xmin = 0.0, xmax = interp->length - 1.0;
 
     t *= interp->f;
-    t += interp->t0;
+    t = t.array() + interp->t0;
 
-    t = xt::eval(xt::minimum(xt::maximum(t, xmin), xmax));
+    t = t.array().min(xmin);
+    t = t.array().max(xmax); 
 
-    xt::xtensor<int, 1> ix = xt::floor(t);
+    Eigen::VectorXd ix = floor(t.array());
     t -= ix;
     
-    return (t * (t * 
-           (t * xt::view(interp->a, xt::keep(ix), 0)
-            + xt::view(interp->a, xt::keep(ix), 1))
-            + xt::view(interp->a, xt::keep(ix), 2))
-            + xt::view(interp->a, xt::keep(ix), 3));
+    // TODO: Find a way to do this without a for loop
+    Eigen::VectorXd result(t.size());
+    for (int i = 0; i < t.size(); ++i) {
+        float ti = t[i];
+        Eigen::RowVector4f coeffs = interp->a.row(ix[i]);
+        result[i] = ((coeffs[0] * ti + coeffs[1]) * ti + coeffs[2]) * ti + coeffs[3];
+    }
+
+    // return (t * (t * 
+    //        (t * xt::view(interp->a, xt::keep(ix), 0)
+    //         + xt::view(interp->a, xt::keep(ix), 1))
+    //         + xt::view(interp->a, xt::keep(ix), 2))
+    //         + xt::view(interp->a, xt::keep(ix), 3));
+    return t;
 }

@@ -41,11 +41,6 @@
 
 #pragma once
 
-#include <xtensor/xtensor.hpp>
-#include <xtensor/xrandom.hpp>
-#include <xtensor/xmath.hpp>
-#include <xtensor/xview.hpp>
-#include <xsimd/xsimd.hpp>
 #include <Eigen/Dense>
 
 typedef struct cubic_interp cubic_interp;
@@ -58,6 +53,6 @@ cubic_interp *cubic_interp_init_eigen(
 void cubic_interp_free_eigen(cubic_interp *interp);
 
 __attribute__ ((pure))
-xt::xtensor<double, 1> cubic_interp_eval_eigen(const cubic_interp *interp, xt::xtensor<double, 1> t);
+Eigen::VectorXd cubic_interp_eval_eigen(const cubic_interp *interp, Eigen::VectorXd t);
 
 
