@@ -29,13 +29,15 @@
 int main(int argc, char **argv) {
     // Reads the files for input values
     double **onevalues = read_1dvalues();
+    FILE *fp = fopen("cpp_data.csv", "w");
 
     // Executes the tests for onevalues
     srand(time(NULL));
-    test_all_cubic_xtensor(onevalues);
+    test_all_cubic_xtensor(onevalues, fp);
 
     // Frees onevalues
     free1d(onevalues);
+    fclose(fp);
 
     return 0;
 }
@@ -81,7 +83,7 @@ double ***read_2dvalues() {
     return values;
 }
 
-void test_cubic_xtensor(int i, double* values) {
+void test_cubic_xtensor(int i, double* values, FILE* fp) {
     // Initializes time recording variables and cubic_interp
     clock_t start, end;
     double cpu_time_used;
@@ -99,6 +101,7 @@ void test_cubic_xtensor(int i, double* values) {
         end = clock();
         cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
         printf("Time for size %d and iterations %d is %lf\n", n_values[i], c, cpu_time_used);
+        fprintf(fp, "%d,%d,%lf\n", n_values[i], c, cpu_time_used);
 
         c *= 10;
     }
@@ -106,11 +109,11 @@ void test_cubic_xtensor(int i, double* values) {
     cubic_interp_free(interp);
 }
 
-void test_all_cubic_xtensor(double** values) {
+void test_all_cubic_xtensor(double** values, FILE* fp) {
     // Runs the test for all values of n
     printf("\nTesting cubic:\n");
     for (int i = 0; i < n_values_size; i++) {
-        test_cubic_xtensor(i, values[i]);
+        test_cubic_xtensor(i, values[i], fp);
     }
 }
 
