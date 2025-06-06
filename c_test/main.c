@@ -97,7 +97,7 @@ void test_cubic(int i, double* values) {
         // Precomputes random values
         double* random = (double*)malloc(c * sizeof(double));
         for (int k = 0; k < c; k++) {
-            random[k] = rand() * c - c/2;
+            random[k] = rand() * c;
         }
 
         // Performs benchmark
@@ -137,8 +137,8 @@ void test_bicubic(int i, double** values) {
         double* randomu = (double*)malloc(c * sizeof(double));
         double* randomv = (double*)malloc(c* sizeof(double));
         for (int k = 0; k < c; k++) {
-            randomu[k] = rand() * c - c/2;
-            randomv[k] = rand() * c - c/2;
+            randomu[k] = rand() * c;
+            randomv[k] = rand() * c;
         }
         
         // Performs benchmark
