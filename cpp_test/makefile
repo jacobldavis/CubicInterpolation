@@ -17,5 +17,5 @@ $(TARGET): $(OBJ)
 clean:
 	rm -f $(OBJ) $(TARGET)
 
-run:
+run: $(TARGET)
 	./$(TARGET)
