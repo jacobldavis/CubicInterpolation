@@ -39,12 +39,6 @@ struct cubic_interp {
 };
 
 
-struct bicubic_interp {
-    v2df fx, x0, xlength;
-    v4df a[][4];
-};
-
-
 /*
  * Calculate coefficients of the interpolating polynomial in the form
  *      a[0] * t^3 + a[1] * t^2 + a[2] * t + a[3]
@@ -88,7 +82,7 @@ cubic_interp *cubic_interp_init(
         interp->f = 1 / dt;
         interp->t0 = 3 - interp->f * tmin;
         interp->length = length;
-        interp->a = xt::zeros<double>({length, 4});
+        interp->a = xt::eval(xt::zeros<double>({length, 4}));
         for (int i = 0; i < length; i ++)
         {
             double z[4];
@@ -97,13 +91,13 @@ cubic_interp *cubic_interp_init(
                 z[j] = data[VCLIP(i + j - 4, 0, n - 1)];
             }
             if (UNLIKELY(!isfinite(z[1] + z[2]))) {
-                xt::row(interp->a, i) = xt::xtensor<double, 1>{0, 0, 0, z[1]};
+                xt::row(interp->a, i) = xt::eval(xt::xtensor<double, 1>{0, 0, 0, z[1]});
             } else if (UNLIKELY(!isfinite(z[0] + z[3]))) {
-                xt::row(interp->a, i) = xt::xtensor<double, 1>{0, 0, z[2]-z[1], z[1]};
+                xt::row(interp->a, i) = xt::eval(xt::xtensor<double, 1>{0, 0, z[2]-z[1], z[1]});
             } else {
-                xt::row(interp->a, i) = xt::xtensor<double, 1>{1.5 * (z[1] - z[2]) + 0.5 * (z[3] - z[0]),
+                xt::row(interp->a, i) = xt::eval(xt::xtensor<double, 1>{1.5 * (z[1] - z[2]) + 0.5 * (z[3] - z[0]),
                                                                z[0] - 2.5 * z[1] + 2 * z[2] - 0.5 * z[3], 
-                                                               0.5 * (z[2] - z[0]), z[1]};
+                                                               0.5 * (z[2] - z[0]), z[1]});
             }
         }
     }
@@ -123,89 +117,15 @@ xt::xtensor<double, 1> cubic_interp_eval(const cubic_interp *interp, xt::xtensor
 
     t *= interp->f;
     t += interp->t0;
-    t = xt::minimum(xt::maximum(t, xmin), xmax);
+
+    t = xt::eval(xt::minimum(xt::maximum(t, xmin), xmax));
 
     xt::xtensor<int, 1> ix = xt::floor(t);
     t -= ix;
-
-    return (t * (t * (t * xt::view(interp->a, xt::keep(ix), 0) + xt::view(interp->a, xt::keep(ix), 1)) + xt::view(interp->a, xt::keep(ix), 2)) + xt::view(interp->a, xt::keep(ix), 3));
-}
-
-// --------------
-// Bicubic Interp
-// --------------
-
-bicubic_interp *bicubic_interp_init(
-    const double *data, int ns, int nt,
-    double smin, double tmin, double ds, double dt)
-{
-    const int slength = ns + 6;
-    const int tlength = nt + 6;
-    bicubic_interp *interp = (bicubic_interp*)aligned_alloc(
-        alignof(bicubic_interp),
-        sizeof(*interp) + slength * tlength * sizeof(*interp->a));
-    if (LIKELY(interp))
-    {
-        interp->fx[0] = 1 / ds;
-        interp->fx[1] = 1 / dt;
-        interp->x0[0] = 3 - interp->fx[0] * smin;
-        interp->x0[1] = 3 - interp->fx[1] * tmin;
-        interp->xlength[0] = slength;
-        interp->xlength[1] = tlength;
-
-        for (int is = 0; is < slength; is ++)
-        {
-            for (int it = 0; it < tlength; it ++)
-            {
-                double a[4][4], a1[4][4];
-                for (int js = 0; js < 4; js ++)
-                {
-                    double z[4];
-                    int ks = VCLIP(is + js - 4, 0, ns - 1);
-                    for (int jt = 0; jt < 4; jt ++)
-                    {
-                        int kt = VCLIP(it + jt - 4, 0, nt - 1);
-                        z[jt] = data[ks * ns + kt];
-                    }
-                    cubic_interp_init_coefficients(a[js], z, z);
-                }
-                for (int js = 0; js < 4; js ++)
-                {
-                    for (int jt = 0; jt < 4; jt ++)
-                    {
-                        a1[js][jt] = a[jt][js];
-                    }
-                }
-                for (int js = 0; js < 4; js ++)
-                {
-                    cubic_interp_init_coefficients(a[js], a1[js], a1[3]);
-                }
-                memcpy(interp->a[is * slength + it], a, sizeof(a));
-            }
-        }
-    }
-    return interp;
-}
-
-
-void bicubic_interp_free(bicubic_interp *interp)
-{
-    free(interp);
-}
-
-
-template<class T>
-double bicubic_interp_eval(const bicubic_interp *interp, xt::xtensor<double, 1> s, xt::xtensor<double, 1> t)
-{
-    v2df x = {s, t}, xmin = {0.0, 0.0}, xmax = interp->xlength - 1.0;
-    x *= interp->fx;
-    x += interp->x0;
-    x = VCLIP(x, xmin, xmax);
-
-    v2df ix = VFLOOR(x);
-    x -= ix;
-
-    const v4df *a = interp->a[(int) (ix[0] * interp->xlength[0] + ix[1])];
-    v4df b = VCUBIC(a, x[1]);
-    return VCUBIC(b, x[0]);
+    
+    return (t * (t * 
+           (t * xt::view(interp->a, xt::keep(ix), 0)
+            + xt::view(interp->a, xt::keep(ix), 1))
+            + xt::view(interp->a, xt::keep(ix), 2))
+            + xt::view(interp->a, xt::keep(ix), 3));
 }

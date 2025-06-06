@@ -29,16 +29,13 @@
 int main(int argc, char **argv) {
     // Reads the files for input values
     double **onevalues = read_1dvalues();
-    double ***twovalues = read_2dvalues();
 
-    // Executes the tests for onevalues and two values
+    // Executes the tests for onevalues
     srand(time(NULL));
     test_all_cubic_xtensor(onevalues);
-    test_all_bicubic_xtensor(twovalues);
 
-    // Frees onevalues and twovalues
+    // Frees onevalues
     free1d(onevalues);
-    free2d(twovalues);
 
     return 0;
 }
@@ -94,7 +91,7 @@ void test_cubic_xtensor(int i, double* values) {
     int c = 10000;
     for (int m = 1; m < 5; m++) {
         // Precomputes random values
-        xt::xtensor<double, 1> random = xt::random::rand<double>({c}, 0, c);
+        xt::xtensor<double, 1> random = xt::random::rand<double>({c}, 0, 100);
 
         // Performs benchmark
         start = clock();
@@ -114,40 +111,6 @@ void test_all_cubic_xtensor(double** values) {
     printf("\nTesting cubic:\n");
     for (int i = 0; i < n_values_size; i++) {
         test_cubic_xtensor(i, values[i]);
-    }
-}
-
-void test_bicubic_xtensor(int i, double** values) {
-    // Initializes time recording variables and bicubic_interp
-    clock_t start, end;
-    double cpu_time_used;
-    bicubic_interp *interp = bicubic_interp_init(*values, n_values[i], n_values[i], -1, -1, 1, 1);
-
-    // Iterates through the interpolation with varying xtensor sizes
-    int c = 10000;
-    for (int m = 1; m < 5; m++) {
-        // Precomputes random values
-        xt::xtensor<double, 1> randomu = xt::random::rand<double>({c}, 0, c);
-        xt::xtensor<double, 1> randomv = xt::random::rand<double>({c}, 0, c);
-
-        // Performs benchmark
-        start = clock();
-        //volatile const double result = bicubic_interp_eval(interp, randomu, randomv);
-        end = clock();
-        cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-        printf("Time for size %d and iterations %d is %lf\n", n_values[i], c, cpu_time_used);
-
-        c *= 10;
-    }
-    printf("\n");
-    bicubic_interp_free(interp);
-}
-
-void test_all_bicubic_xtensor(double*** values) {
-    // Runs the test for all values of n
-    printf("\nTesting bicubic:\n");
-    for (int i = 0; i < n_values_size; i++) {
-        test_bicubic_xtensor(i, values[i]);
     }
 }
 

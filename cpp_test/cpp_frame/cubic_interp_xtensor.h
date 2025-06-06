@@ -45,6 +45,7 @@
 #include <xtensor/xrandom.hpp>
 #include <xtensor/xmath.hpp>
 #include <xtensor/xview.hpp>
+#include <xsimd/xsimd.hpp>
 
 typedef struct cubic_interp cubic_interp;
 typedef struct bicubic_interp bicubic_interp;
