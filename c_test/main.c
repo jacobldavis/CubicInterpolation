@@ -28,18 +28,20 @@
 #include <time.h>
 
 int main(int argc, char **argv) {
-    // Reads the files for input values
+    // Reads the files for input values and creates a csv
     double **onevalues = read_1dvalues();
     double ***twovalues = read_2dvalues();
+    FILE *fp = fopen("c_data.csv", "w");
 
     // Executes the tests for onevalues and two values
     srand(time(NULL));
-    test_all_cubic(onevalues);
-    test_all_bicubic(twovalues);
+    test_all_cubic(onevalues, fp);
+    test_all_bicubic(twovalues, fp);
 
     // Frees onevalues and twovalues
     free1d(onevalues);
     free2d(twovalues);
+    fclose(fp);
 
     return 0;
 }
@@ -85,7 +87,7 @@ double ***read_2dvalues() {
     return values;
 }
 
-void test_cubic(int i, double* values) {
+void test_cubic(int i, double* values, FILE* fp) {
     // Initializes time recording variables and cubic_interp
     clock_t start, end;
     double cpu_time_used;
@@ -108,6 +110,7 @@ void test_cubic(int i, double* values) {
         end = clock();
         cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
         printf("Time for size %d and iterations %d is %lf\n", n_values[i], c, cpu_time_used);
+        fprintf(fp, "%d,%d,%lf\n", n_values[i], c, cpu_time_used);
 
         c *= 10;
         free(random);
@@ -116,15 +119,15 @@ void test_cubic(int i, double* values) {
     cubic_interp_free(interp);
 }
 
-void test_all_cubic(double** values) {
+void test_all_cubic(double** values, FILE* fp) {
     // Runs the test for all values of n
     printf("\nTesting cubic:\n");
     for (int i = 0; i < n_values_size; i++) {
-        test_cubic(i, values[i]);
+        test_cubic(i, values[i], fp);
     }
 }
 
-void test_bicubic(int i, double** values) {
+void test_bicubic(int i, double** values, FILE* fp) {
     // Initializes time recording variables and bicubic_interp
     clock_t start, end;
     double cpu_time_used;
@@ -152,6 +155,7 @@ void test_bicubic(int i, double** values) {
         end = clock();
         cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
         printf("Time for size %d and iterations %d is %lf\n", n_values[i], c, cpu_time_used);
+        fprintf(fp, "%d,%d,%lf\n", n_values[i], c, cpu_time_used);
 
         c *= 10;
         free(randomu);
@@ -161,11 +165,11 @@ void test_bicubic(int i, double** values) {
     bicubic_interp_free(interp);
 }
 
-void test_all_bicubic(double*** values) {
+void test_all_bicubic(double*** values, FILE* fp) {
     // Runs the test for all values of n
     printf("\nTesting bicubic:\n");
     for (int i = 0; i < n_values_size; i++) {
-        test_bicubic(i, values[i]);
+        test_bicubic(i, values[i], fp);
     }
 }
 

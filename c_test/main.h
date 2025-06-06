@@ -21,6 +21,8 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#include <stdio.h>
+
 static const int n_values[5] = {4, 10, 100, 400, 1000};
 static const int n_values_size = 5;
 
@@ -47,21 +49,21 @@ void free2d(double*** values);
 /*
  * Runs the cubic interpolation at a particular value of n.
  */
-void test_cubic(int i, double* values);
+void test_cubic(int i, double* values, FILE* fp);
 
 /*
  * Runs the cubic interpolation at every value of n in n_values.
  */
-void test_all_cubic(double** values);
+void test_all_cubic(double** values, FILE* fp);
 
 /*
  * Runs the bicubic interpolation at a particular value of n.
  */
-void test_bicubic(int i, double** values);
+void test_bicubic(int i, double** values, FILE* fp);
 
 /*
  * Runs the bicubic interpolation at every value of n in n_values.
  */
-void test_all_bicubic(double*** values);
+void test_all_bicubic(double*** values, FILE* fp);
 
 #endif /* CUBIC_INTERP_H */
