@@ -90,15 +90,15 @@ void test_cubic_xtensor(int i, double* values) {
     double cpu_time_used;
     cubic_interp *interp = cubic_interp_init(values, n_values[i], -1, 1);
 
-    // Iterates through the interpolation with varying loop operation counts
+    // Iterates through the interpolation with varying xtensor sizes
     int c = 10000;
     for (int m = 1; m < 5; m++) {
         // Precomputes random values
-        xt::xtensor<double, 1> random = xt::random::rand(c, 0, c);
+        xt::xtensor<double, 1> random = xt::random::rand<double>({c}, 0, c);
 
         // Performs benchmark
         start = clock();
-        volatile const double result = cubic_interp_eval(interp, random);
+        volatile const xt::xtensor<double, 1> result = cubic_interp_eval(interp, random);
         end = clock();
         cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
         printf("Time for size %d and iterations %d is %lf\n", n_values[i], c, cpu_time_used);
@@ -123,16 +123,16 @@ void test_bicubic_xtensor(int i, double** values) {
     double cpu_time_used;
     bicubic_interp *interp = bicubic_interp_init(*values, n_values[i], n_values[i], -1, -1, 1, 1);
 
-    // Iterates through the interpolation with varying loop operation counts
+    // Iterates through the interpolation with varying xtensor sizes
     int c = 10000;
     for (int m = 1; m < 5; m++) {
         // Precomputes random values
-        xt::xtensor<double, 1> randomu = xt::random::rand(c, 0, c);
-        xt::xtensor<double, 1> randomv = xt::random::rand(c, 0, c);
+        xt::xtensor<double, 1> randomu = xt::random::rand<double>({c}, 0, c);
+        xt::xtensor<double, 1> randomv = xt::random::rand<double>({c}, 0, c);
 
         // Performs benchmark
         start = clock();
-        volatile const double result = bicubic_interp_eval(interp, randomu, randomv);
+        //volatile const double result = bicubic_interp_eval(interp, randomu, randomv);
         end = clock();
         cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
         printf("Time for size %d and iterations %d is %lf\n", n_values[i], c, cpu_time_used);

@@ -35,7 +35,7 @@
 
 struct cubic_interp {
     double f, t0, length;
-    double a[][4];
+    xt::xtensor<double, 2> a;
 };
 
 
@@ -82,12 +82,13 @@ cubic_interp *cubic_interp_init(
     const double *data, int n, double tmin, double dt)
 {
     const int length = n + 6;
-    cubic_interp *interp = (cubic_interp*)malloc(sizeof(*interp) + length * sizeof(*interp->a));
+    cubic_interp *interp = new cubic_interp;
     if (LIKELY(interp))
     {
         interp->f = 1 / dt;
         interp->t0 = 3 - interp->f * tmin;
         interp->length = length;
+        interp->a = xt::zeros<double>({length, 4});
         for (int i = 0; i < length; i ++)
         {
             double z[4];
@@ -95,7 +96,15 @@ cubic_interp *cubic_interp_init(
             {
                 z[j] = data[VCLIP(i + j - 4, 0, n - 1)];
             }
-            cubic_interp_init_coefficients(interp->a[i], z, z);
+            if (UNLIKELY(!isfinite(z[1] + z[2]))) {
+                xt::row(interp->a, i) = xt::xtensor<double, 1>{0, 0, 0, z[1]};
+            } else if (UNLIKELY(!isfinite(z[0] + z[3]))) {
+                xt::row(interp->a, i) = xt::xtensor<double, 1>{0, 0, z[2]-z[1], z[1]};
+            } else {
+                xt::row(interp->a, i) = xt::xtensor<double, 1>{1.5 * (z[1] - z[2]) + 0.5 * (z[3] - z[0]),
+                                                               z[0] - 2.5 * z[1] + 2 * z[2] - 0.5 * z[3], 
+                                                               0.5 * (z[2] - z[0]), z[1]};
+            }
         }
     }
     return interp;
@@ -108,22 +117,18 @@ void cubic_interp_free(cubic_interp *interp)
 }
 
 
-template<class T>
-double cubic_interp_eval(const cubic_interp *interp, xt::xtensor<T, 1> t)
+xt::xtensor<double, 1> cubic_interp_eval(const cubic_interp *interp, xt::xtensor<double, 1> t)
 {
-    if (UNLIKELY(isnan(t)))
-        return t;
+    double xmin = 0.0, xmax = interp->length - 1.0;
 
-    double x = t, xmin = 0.0, xmax = interp->length - 1.0;
-    x *= interp->f;
-    x += interp->t0;
-    x = VCLIP(x, xmin, xmax);
+    t *= interp->f;
+    t += interp->t0;
+    t = xt::minimum(xt::maximum(t, xmin), xmax);
 
-    double ix = VFLOOR(x);
-    x -= ix;
+    xt::xtensor<int, 1> ix = xt::floor(t);
+    t -= ix;
 
-    const double *a = interp->a[(int) ix];
-    return VCUBIC(a, x);
+    return (t * (t * (t * xt::view(interp->a, xt::keep(ix), 0) + xt::view(interp->a, xt::keep(ix), 1)) + xt::view(interp->a, xt::keep(ix), 2)) + xt::view(interp->a, xt::keep(ix), 3));
 }
 
 // --------------
@@ -192,9 +197,6 @@ void bicubic_interp_free(bicubic_interp *interp)
 template<class T>
 double bicubic_interp_eval(const bicubic_interp *interp, xt::xtensor<double, 1> s, xt::xtensor<double, 1> t)
 {
-    if (UNLIKELY(isnan(s) || isnan(t)))
-        return s + t;
-
     v2df x = {s, t}, xmin = {0.0, 0.0}, xmax = interp->xlength - 1.0;
     x *= interp->fx;
     x += interp->x0;

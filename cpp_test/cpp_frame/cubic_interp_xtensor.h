@@ -43,6 +43,8 @@
 
 #include <xtensor/xtensor.hpp>
 #include <xtensor/xrandom.hpp>
+#include <xtensor/xmath.hpp>
+#include <xtensor/xview.hpp>
 
 typedef struct cubic_interp cubic_interp;
 typedef struct bicubic_interp bicubic_interp;
@@ -53,8 +55,8 @@ cubic_interp *cubic_interp_init(
 
 void cubic_interp_free(cubic_interp *interp);
 
-template<class T>
-double cubic_interp_eval(const cubic_interp *interp, xt::xtensor<T, 1> t);
+__attribute__ ((pure))
+xt::xtensor<double, 1> cubic_interp_eval(const cubic_interp *interp, xt::xtensor<double, 1> t);
 
 __attribute__ ((malloc))
 bicubic_interp *bicubic_interp_init(
