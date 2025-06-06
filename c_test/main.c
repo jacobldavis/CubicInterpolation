@@ -140,8 +140,8 @@ void test_bicubic(int i, double** values, FILE* fp) {
         double* randomu = (double*)malloc(c * sizeof(double));
         double* randomv = (double*)malloc(c * sizeof(double));
         for (int k = 0; k < c; k++) {
-            randomu[k] = rand() * c;
-            randomv[k] = rand() * c;
+            randomu[k] = rand() * 100;
+            randomv[k] = rand() * 100;
         }
         
         // Performs benchmark
