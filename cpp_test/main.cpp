@@ -19,6 +19,7 @@
  */
 
 #include "cpp_frame/cubic_interp_xtensor.h"
+#include "cpp_frame/cubic_interp_eigen.h"
 #include "main.h"
 #include <gsl/gsl_test.h>
 #include <gsl/gsl_math.h>
@@ -29,15 +30,15 @@
 int main(int argc, char **argv) {
     // Reads the files for input values
     double **onevalues = read_1dvalues();
-    FILE *fp = fopen("cpp_data.csv", "w");
+    FILE *xfp = fopen("xtensor_data.csv", "w");
 
     // Executes the tests for onevalues
     srand(time(NULL));
-    test_all_cubic_xtensor(onevalues, fp);
+    test_all_cubic_xtensor(onevalues, xfp);
 
     // Frees onevalues
     free1d(onevalues);
-    fclose(fp);
+    fclose(xfp);
 
     return 0;
 }
@@ -87,7 +88,7 @@ void test_cubic_xtensor(int i, double* values, FILE* fp) {
     // Initializes time recording variables and cubic_interp
     clock_t start, end;
     double cpu_time_used;
-    cubic_interp *interp = cubic_interp_init(values, n_values[i], -1, 1);
+    cubic_interp *interp = cubic_interp_init_xtensor(values, n_values[i], -1, 1);
 
     // Iterates through the interpolation with varying xtensor sizes
     int c = 10000;
@@ -97,7 +98,7 @@ void test_cubic_xtensor(int i, double* values, FILE* fp) {
 
         // Performs benchmark
         start = clock();
-        volatile const xt::xtensor<double, 1> result = cubic_interp_eval(interp, random);
+        volatile const xt::xtensor<double, 1> result = cubic_interp_eval_xtensor(interp, random);
         end = clock();
         cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
         printf("Time for size %d and iterations %d is %lf\n", n_values[i], c, cpu_time_used);
@@ -106,7 +107,7 @@ void test_cubic_xtensor(int i, double* values, FILE* fp) {
         c *= 10;
     }
     printf("\n");
-    cubic_interp_free(interp);
+    cubic_interp_free_xtensor(interp);
 }
 
 void test_all_cubic_xtensor(double** values, FILE* fp) {

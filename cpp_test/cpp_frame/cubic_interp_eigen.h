@@ -46,15 +46,18 @@
 #include <xtensor/xmath.hpp>
 #include <xtensor/xview.hpp>
 #include <xsimd/xsimd.hpp>
+#include <Eigen/Dense>
 
 typedef struct cubic_interp cubic_interp;
 typedef struct bicubic_interp bicubic_interp;
 
 __attribute__ ((malloc))
-cubic_interp *cubic_interp_init_xtensor(
+cubic_interp *cubic_interp_init_eigen(
     const double *data, int n, double tmin, double dt);
 
-void cubic_interp_free_xtensor(cubic_interp *interp);
+void cubic_interp_free_eigen(cubic_interp *interp);
 
 __attribute__ ((pure))
-xt::xtensor<double, 1> cubic_interp_eval_xtensor(const cubic_interp *interp, xt::xtensor<double, 1> t);
+xt::xtensor<double, 1> cubic_interp_eval_eigen(const cubic_interp *interp, xt::xtensor<double, 1> t);
+
+

@@ -22,8 +22,6 @@
 #include "main.h"
 #include <gsl/gsl_test.h>
 #include <gsl/gsl_math.h>
-#include <assert.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 

@@ -15,9 +15,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "cubic_interp_xtensor.h"
+#include "cubic_interp_eigen.h"
 #include "branch_prediction.h"
-#include "vmath_xtensor.h"
+#include "vmath_eigen.h"
 #include <math.h>
 #include <stdalign.h>
 #include <stdlib.h>
@@ -72,7 +72,7 @@ static void cubic_interp_init_coefficients(
 }
 
 // Returns an array of cubic_interp structs based on the input data array
-cubic_interp *cubic_interp_init_xtensor(
+cubic_interp *cubic_interp_init_eigen(
     const double *data, int n, double tmin, double dt)
 {
     const int length = n + 6;
@@ -105,13 +105,13 @@ cubic_interp *cubic_interp_init_xtensor(
 }
 
 
-void cubic_interp_free_xtensor(cubic_interp *interp)
+void cubic_interp_free_eigen(cubic_interp *interp)
 {
     free(interp);
 }
 
 
-xt::xtensor<double, 1> cubic_interp_eval_xtensor(const cubic_interp *interp, xt::xtensor<double, 1> t)
+xt::xtensor<double, 1> cubic_interp_eval_eigen(const cubic_interp *interp, xt::xtensor<double, 1> t)
 {
     double xmin = 0.0, xmax = interp->length - 1.0;
 
