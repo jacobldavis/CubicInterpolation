@@ -46,19 +46,19 @@ void free2d(double*** values);
 /*
  * Runs the cubic interpolation at a particular value of n.
  */
-void test_cubic(int i, double* values);
+void test_cubic_xtensor(int i, double* values);
 
 /*
  * Runs the cubic interpolation at every value of n in n_values.
  */
-void test_all_cubic(double** values);
+void test_all_cubic_xtensor(double** values);
 
 /*
  * Runs the bicubic interpolation at a particular value of n.
  */
-void test_bicubic(int i, double** values);
+void test_bicubic_xtensor(int i, double** values);
 
 /*
  * Runs the bicubic interpolation at every value of n in n_values.
  */
-void test_all_bicubic(double*** values);
+void test_all_bicubic_xtensor(double*** values);

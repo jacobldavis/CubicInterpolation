@@ -108,7 +108,8 @@ void cubic_interp_free(cubic_interp *interp)
 }
 
 
-double cubic_interp_eval(const cubic_interp *interp, double t)
+template<class T>
+double cubic_interp_eval(const cubic_interp *interp, xt::xtensor<T, 1> t)
 {
     if (UNLIKELY(isnan(t)))
         return t;
@@ -188,7 +189,8 @@ void bicubic_interp_free(bicubic_interp *interp)
 }
 
 
-double bicubic_interp_eval(const bicubic_interp *interp, double s, double t)
+template<class T>
+double bicubic_interp_eval(const bicubic_interp *interp, xt::xtensor<double, 1> s, xt::xtensor<double, 1> t)
 {
     if (UNLIKELY(isnan(s) || isnan(t)))
         return s + t;

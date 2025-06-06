@@ -33,8 +33,8 @@ int main(int argc, char **argv) {
 
     // Executes the tests for onevalues and two values
     srand(time(NULL));
-    test_all_cubic(onevalues);
-    test_all_bicubic(twovalues);
+    test_all_cubic_xtensor(onevalues);
+    test_all_bicubic_xtensor(twovalues);
 
     // Frees onevalues and twovalues
     free1d(onevalues);
@@ -84,7 +84,7 @@ double ***read_2dvalues() {
     return values;
 }
 
-void test_cubic(int i, double* values) {
+void test_cubic_xtensor(int i, double* values) {
     // Initializes time recording variables and cubic_interp
     clock_t start, end;
     double cpu_time_used;
@@ -94,36 +94,32 @@ void test_cubic(int i, double* values) {
     int c = 10000;
     for (int m = 1; m < 5; m++) {
         // Precomputes random values
-        double* random = (double*)malloc(c * sizeof(double));
-        for (int k = 0; k < c; k++) {
-            random[k] = rand() * c - c/2;
-        }
+        xt::xtensor<double, 1> random = xt::random::rand(n_values[i], 0, c);
 
         // Performs benchmark
         start = clock();
         for (int t = 0; t <= c; t += 1) {
-            volatile const double result = cubic_interp_eval(interp, random[t]);
+            volatile const double result = cubic_interp_eval(interp, random);
         }
         end = clock();
         cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
         printf("Time for size %d and iterations %d is %lf\n", n_values[i], c, cpu_time_used);
 
         c *= 10;
-        free(random);
     }
     printf("\n");
     cubic_interp_free(interp);
 }
 
-void test_all_cubic(double** values) {
+void test_all_cubic_xtensor(double** values) {
     // Runs the test for all values of n
     printf("\nTesting cubic:\n");
     for (int i = 0; i < n_values_size; i++) {
-        test_cubic(i, values[i]);
+        test_cubic_xtensor(i, values[i]);
     }
 }
 
-void test_bicubic(int i, double** values) {
+void test_bicubic_xtensor(int i, double** values) {
     // Initializes time recording variables and bicubic_interp
     clock_t start, end;
     double cpu_time_used;
@@ -133,19 +129,15 @@ void test_bicubic(int i, double** values) {
     int c = 10000;
     for (int m = 1; m < 5; m++) {
         // Precomputes random values
-        double* randomu = (double*)malloc(c * sizeof(double));
-        double* randomv = (double*)malloc(c* sizeof(double));
-        for (int k = 0; k < c; k++) {
-            randomu[k] = rand() * c - c/2;
-            randomv[k] = rand() * c - c/2;
-        }
-        
+        xt::xtensor<double, 1> randomu = xt::random::rand(n_values[i], 0, c);
+        xt::xtensor<double, 1> randomv = xt::random::rand(n_values[i], 0, c);
+
         // Performs benchmark
         int iter = sqrt(c);
         start = clock();
         for (int s = 0; s <= iter; s += 1) {
             for (int t = 0; t <= iter; t += 1) {
-                volatile const double result = bicubic_interp_eval(interp, randomu[s * iter + t], randomv[s * iter + t]);
+                volatile const double result = bicubic_interp_eval(interp, randomu, randomv);
             }
         }
         end = clock();
@@ -153,18 +145,16 @@ void test_bicubic(int i, double** values) {
         printf("Time for size %d and iterations %d is %lf\n", n_values[i], c, cpu_time_used);
 
         c *= 10;
-        free(randomu);
-        free(randomv);
     }
     printf("\n");
     bicubic_interp_free(interp);
 }
 
-void test_all_bicubic(double*** values) {
+void test_all_bicubic_xtensor(double*** values) {
     // Runs the test for all values of n
     printf("\nTesting bicubic:\n");
     for (int i = 0; i < n_values_size; i++) {
-        test_bicubic(i, values[i]);
+        test_bicubic_xtensor(i, values[i]);
     }
 }
 
