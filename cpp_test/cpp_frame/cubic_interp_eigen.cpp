@@ -35,7 +35,7 @@
 
 struct cubic_interp {
     double f, t0, length;
-    Eigen::MatrixXf a;
+    Eigen::MatrixXd a;
 };
 
 // Returns an array of cubic_interp structs based on the input data array
@@ -58,11 +58,11 @@ cubic_interp *cubic_interp_init_eigen(
                 z[j] = data[VCLIP(i + j - 4, 0, n - 1)];
             }
             if (UNLIKELY(!isfinite(z[1] + z[2]))) {
-                interp->a.row(i) = Eigen::RowVector4f(0, 0, 0, z[1]);
+                interp->a.row(i) = Eigen::RowVector4d(0, 0, 0, z[1]);
             } else if (UNLIKELY(!isfinite(z[0] + z[3]))) {
-                interp->a.row(i) = Eigen::RowVector4f(0, 0, z[2]-z[1], z[1]);
+                interp->a.row(i) = Eigen::RowVector4d(0, 0, z[2]-z[1], z[1]);
             } else {
-                interp->a.row(i) = Eigen::RowVector4f(1.5 * (z[1] - z[2]) + 0.5 * (z[3] - z[0]), 
+                interp->a.row(i) = Eigen::RowVector4d(1.5 * (z[1] - z[2]) + 0.5 * (z[3] - z[0]), 
                                                       z[0] - 2.5 * z[1] + 2 * z[2] - 0.5 * z[3], 
                                                       0.5 * (z[2] - z[0]), z[1]);
             }
@@ -77,27 +77,19 @@ void cubic_interp_free_eigen(cubic_interp *interp)
     free(interp);
 }
 
-
-Eigen::VectorXd cubic_interp_eval_eigen(const cubic_interp *interp, Eigen::VectorXd t)
+Eigen::VectorXd cubic_interp_eval_eigen(const cubic_interp* interp, Eigen::VectorXd t)
 {
-    double xmin = 0.0, xmax = interp->length - 1.0;
+    double xmin = 0.0, xmax = static_cast<double>(interp->length - 1);
 
     t *= interp->f;
     t = t.array() + interp->t0;
 
-    t = t.array().min(xmin);
-    t = t.array().max(xmax); 
+    t = t.array().min(xmax).max(xmin);
 
-    Eigen::VectorXd ix = floor(t.array());
+    Eigen::VectorXd ix = t.array().floor();
     t -= ix;
-    
-    // TODO: Find a way to do this without a for loop
-    Eigen::VectorXd result(t.size());
-    for (int i = 0; i < t.size(); ++i) {
-        float ti = t[i];
-        Eigen::RowVector4f coeffs = interp->a.row(ix[i]);
-        result[i] = ((coeffs[0] * ti + coeffs[1]) * ti + coeffs[2]) * ti + coeffs[3];
-    }
 
-    return result;
+    std::vector<int> ai(ix.data(), ix.data() + ix.rows() * ix.cols());
+
+    return (t.array() * (t.array() * (t.array() * interp->a(ai, 0).array() + interp->a(ai, 1).array()) + interp->a(ai, 0).array()) + interp->a(ai, 0).array()).matrix();
 }
