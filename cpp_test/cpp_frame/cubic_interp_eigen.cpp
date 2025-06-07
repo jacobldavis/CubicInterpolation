@@ -89,10 +89,7 @@ Eigen::VectorXd cubic_interp_eval_eigen(const cubic_interp* interp, Eigen::Vecto
     Eigen::VectorXd ix = t.array().floor();
     t -= ix;
 
-    Eigen::MatrixXd ai(t.size(), 4);
-    for (Eigen::Index i = 0; i < t.size(); ++i) {
-        ai.row(i) = interp->a.row(static_cast<Eigen::Index>(ix(i)));
-    }
+    Eigen::MatrixXd ai = interp->a(ix, Eigen::all);
 
     return (t.array() * (t.array() * (t.array() * ai.col(0).array() + ai.col(1).array()) + ai.col(2).array()) + ai.col(3).array()).matrix();
 }
