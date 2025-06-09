@@ -42,8 +42,6 @@
 #ifndef CUBIC_INTERP_H
 #define CUBIC_INTERP_H
 
-#ifndef __cplusplus
-
 typedef struct cubic_interp cubic_interp;
 typedef struct bicubic_interp bicubic_interp;
 
@@ -68,6 +66,4 @@ double bicubic_interp_eval(const bicubic_interp *interp, double s, double t);
 
 int cubic_interp_test(void);
 
-#endif /* __cplusplus */
-
-#endif /* CUBIC_INTERP_H */
+#endif 
