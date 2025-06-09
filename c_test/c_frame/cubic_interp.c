@@ -30,7 +30,6 @@
 #pragma STDC FP_CONTRACT ON
 #endif
 
-#define VCLIP(x, a, b) VMIN(VMAX((x), (a)), (b))
 #define VCUBIC(a, t) (t * (t * (t * a[0] + a[1]) + a[2]) + a[3])
 
 

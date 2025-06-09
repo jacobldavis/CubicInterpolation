@@ -97,6 +97,8 @@ static int int_max(int a, int b)
     double: floor \
 )(a)
 
+#define VCLIP(x, a, b) VMIN(VMAX((x), (a)), (b))
+
 
 #endif /* __cplusplus */
 

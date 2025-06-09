@@ -20,8 +20,24 @@
 #include <cuda_runtime.h>
 #include "kernel.h"
 
-__global__ void cubic_interp_eval(cubic_interp* dev_interp, double* dev_t) {
-    //int idx = blockIdx.x * blockDim.x + threadIdx.x;
+__global__ void cubic_interp_eval(int c, cubic_interp* dev_interp, double* dev_t) {
+    // Sets initial index
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    // Performs cubic interpolation
+    while (idx < c) {
+        double x = dev_t[idx], xmin = 0.0, xmax = dev_interp->length - 1.0;
+        x *= dev_interp->f;
+        x += dev_interp->t0;
+        x = min(max(x, xmin), xmax);
+
+        double ix = floor(x);
+        x -= ix;
+
+        const double *a = dev_interp->a[(int) ix];
+        dev_t[idx] = (x * (x * (x * a[0] + a[1]) + a[2]) + a[3]);
+        idx += blockDim.x * gridDim.x;
+    }
 }
 
 extern void test_all_cubic_cuda(double **values, FILE *fp) 
@@ -54,12 +70,12 @@ extern void test_all_cubic_cuda(double **values, FILE *fp)
 
             // Copies t to the GPU
             double* dev_t;
-            cudaMalloc( (void**)&dev_t, c*sizeof(double));
-            cudaMemcpy(dev_t, t, c*sizeof(double), cudaMemcpyHostToDevice);
+            cudaMalloc( (void**)&dev_t, c * sizeof(double));
+            cudaMemcpy(dev_t, t, c * sizeof(double), cudaMemcpyHostToDevice);
 
             // Performs benchmark and records time
             cudaEventRecord(start, 0);
-            cubic_interp_eval<<<blocksPerGrid,threadsPerBlock>>>(dev_interp, dev_t);
+            cubic_interp_eval<<<blocksPerGrid,threadsPerBlock>>>(c, dev_interp, dev_t);
             cudaEventRecord(stop, 0);
             cudaEventSynchronize(stop);
             cudaEventElapsedTime(&elapsedTime, start, stop);
@@ -80,5 +96,4 @@ extern void test_all_cubic_cuda(double **values, FILE *fp)
         cubic_interp_free(interp);
         printf("\n");
     }
-
 }
