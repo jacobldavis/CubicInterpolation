@@ -38,7 +38,6 @@ struct cubic_interp {
     xt::xtensor<double, 2> a;
 };
 
-// Returns an array of cubic_interp structs based on the input data array
 cubic_interp *cubic_interp_init_xtensor(
     const double *data, int n, double tmin, double dt)
 {
@@ -78,8 +77,9 @@ void cubic_interp_free_xtensor(cubic_interp *interp)
 }
 
 
-xt::xtensor<double, 1> cubic_interp_eval_xtensor(const cubic_interp *interp, xt::xtensor<double, 1> t)
+xt::xtensor<double, 1> cubic_interp_eval_xtensor(const cubic_interp *interp, xt::xtensor<double, 1>& t_in)
 {
+    xt::xtensor<double, 1> t = t_in;
     double xmin = 0.0, xmax = interp->length - 1.0;
 
     t *= interp->f;
@@ -87,12 +87,12 @@ xt::xtensor<double, 1> cubic_interp_eval_xtensor(const cubic_interp *interp, xt:
 
     t = xt::eval(xt::minimum(xt::maximum(t, xmin), xmax));
 
-    xt::xtensor<int, 1> ix = xt::floor(t);
+    xt::xtensor<int, 1> ix = xt::eval(xt::floor(t));
     t -= ix;
     
     return (t * (t * 
-           (t * xt::view(interp->a, xt::keep(ix), 0)
-            + xt::view(interp->a, xt::keep(ix), 1))
-            + xt::view(interp->a, xt::keep(ix), 2))
-            + xt::view(interp->a, xt::keep(ix), 3));
+           (t * xt::eval(xt::view(interp->a, xt::keep(ix), 0))
+            + xt::eval(xt::view(interp->a, xt::keep(ix), 1)))
+            + xt::eval(xt::view(interp->a, xt::keep(ix), 2)))
+            + xt::eval(xt::view(interp->a, xt::keep(ix), 3)));
 }

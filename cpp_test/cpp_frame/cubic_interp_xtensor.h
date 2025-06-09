@@ -57,4 +57,4 @@ cubic_interp *cubic_interp_init_xtensor(
 void cubic_interp_free_xtensor(cubic_interp *interp);
 
 __attribute__ ((pure))
-xt::xtensor<double, 1> cubic_interp_eval_xtensor(const cubic_interp *interp, xt::xtensor<double, 1> t);
+xt::xtensor<double, 1> cubic_interp_eval_xtensor(const cubic_interp *interp, xt::xtensor<double, 1>& t_in);

@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -march=native
+CFLAGS = -O3 -march=native
 LIBS = -lgsl -lm
 SRC = main.cpp
 CPP_FRAME_SRC = $(wildcard cpp_frame/*.cpp)

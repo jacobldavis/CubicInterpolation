@@ -30,18 +30,18 @@
 int main(int argc, char **argv) {
     // Reads the files for input values
     double **onevalues = read_1dvalues();
-    //FILE *xfp = fopen("xtensor_data.csv", "w");
-    FILE *efp = fopen("eigen_data.csv", "w");
+    FILE *xfp = fopen("xtensor_data.csv", "w");
+    //FILE *efp = fopen("eigen_data.csv", "w");
 
     // Executes the tests for onevalues
     srand(time(NULL));
-    // test_all_cubic_xtensor(onevalues, xfp);
-    test_all_cubic_eigen(onevalues, efp);
+    test_all_cubic_xtensor(onevalues, xfp);
+    //test_all_cubic_eigen(onevalues, efp);
 
     // Frees onevalues
     free1d(onevalues);
-    //fclose(xfp);
-    fclose(efp);
+    fclose(xfp);
+    //fclose(efp);
 
     return 0;
 }
@@ -97,7 +97,7 @@ void test_cubic_xtensor(int i, double* values, FILE* fp) {
     int c = 10000;
     for (int m = 1; m < 5; m++) {
         // Precomputes random values
-        xt::xtensor<double, 1> random = xt::random::rand<double>({c}, 0, 100);
+        xt::xtensor<double, 1> random = xt::eval(xt::random::rand<double>({c}, 0, 100));
 
         // Performs benchmark
         start = clock();
@@ -107,7 +107,7 @@ void test_cubic_xtensor(int i, double* values, FILE* fp) {
         printf("Time for size %d and iterations %d is %lf\n", n_values[i], c, cpu_time_used);
         fprintf(fp, "%d,%d,%lf\n", n_values[i], c, cpu_time_used);
 
-        c *= 10;
+        c = c * 10;
     }
     printf("\n");
     cubic_interp_free_xtensor(interp);
@@ -131,7 +131,7 @@ void test_cubic_eigen(int i, double* values, FILE* fp) {
     int c = 10000;
     for (int m = 1; m < 5; m++) {
         // Precomputes random values
-        Eigen::VectorXd random = (Eigen::VectorXd::Random(c)) * 100;
+        Eigen::VectorXd random = (Eigen::VectorXd::Random(c) + Eigen::VectorXd::Ones(c)) * 50;
 
         // Performs benchmark
         start = clock();

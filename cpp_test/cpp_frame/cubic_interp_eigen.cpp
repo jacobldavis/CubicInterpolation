@@ -22,6 +22,7 @@
 #include <stdalign.h>
 #include <stdlib.h>
 #include <string.h>
+#include <iostream>
 
 /* Allow contraction of a * b + c to a faster fused multiply-add operation.
  * This pragma is supposedly standard C, but only clang seems to support it.
