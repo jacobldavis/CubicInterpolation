@@ -79,6 +79,7 @@ extern void test_all_cubic_cuda(double **values, FILE *fp)
             for (int k = 0; k < c; k++) {
                 t[k] = rand() * 100;
             }
+            // TODO: update this to probe GPU characteristics
             int threadsPerBlock = 1028;
             int blocksPerGrid = int((c+threadsPerBlock-1)/threadsPerBlock);
             cudaEvent_t start, stop;
