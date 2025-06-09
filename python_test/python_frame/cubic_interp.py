@@ -28,7 +28,7 @@ class cubic_interp_numpy:
         self.a = []
         for i in range(self.length):
             z = [0,0,0,0]
-            for j in z:
+            for j in range(len(z)):
                 z[j] = data[min(max(i+j-4,0),n-1)]
             if np.isnan(z[1]) or np.isinf(z[1]) or np.isnan(z[2]) or np.isinf(z[2]):
                 self.a.append([0,0,0,z[1]])
