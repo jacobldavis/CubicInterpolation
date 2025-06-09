@@ -47,7 +47,7 @@ typedef struct bicubic_interp bicubic_interp;
 
 struct cubic_interp {
     double f, t0, length;
-    double a[][4];
+    double (*a)[4];
 };
 
 __attribute__ ((malloc))

@@ -21,22 +21,27 @@
 #include "kernel.h"
 
 __global__ void cubic_interp_eval(int c, cubic_interp* dev_interp, double* dev_t) {
-    // Sets initial index
+    // Sets initial index and other values to compute
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
+    int len = dev_interp->length;
+    double f = dev_interp->f;
+    double t0 = dev_interp->t0;
+    double xmin = 0.0, xmax = dev_interp->length - 1.0;
 
     // Performs cubic interpolation
     while (idx < c) {
-        double x = dev_t[idx], xmin = 0.0, xmax = dev_interp->length - 1.0;
-        x *= dev_interp->f;
-        x += dev_interp->t0;
-        x = min(max(x, xmin), xmax);
+        double x = dev_t[idx];
+        x = f * x + t0;
+        x = fmin(fmax(x, xmin), xmax);
 
-        double ix = floor(x);
+        int ix = (int)x;
         x -= ix;
 
-        const double *a = dev_interp->a[(int) ix];
+        const double *a = dev_interp->a[ix];
         dev_t[idx] = (x * (x * (x * a[0] + a[1]) + a[2]) + a[3]);
-        idx += blockDim.x * gridDim.x;
+
+        idx += stride;
     }
 }
 
@@ -49,9 +54,22 @@ extern void test_all_cubic_cuda(double **values, FILE *fp)
     for (int i = 0; i < n_values_size; i++) {
         // Initializes cubic_interp and copies to the GPU
         cubic_interp *interp = cubic_interp_init(values[i], n_values[i], -1, 1);
+        double (*host_a)[4] = interp->a;
+        int len = interp->length;
+
+        double (*dev_a)[4];
+        cudaMalloc(&dev_a, len * sizeof(double[4]));
+        cudaMemcpy(dev_a, host_a, len * sizeof(double[4]), cudaMemcpyHostToDevice);
+
+        cubic_interp h_interp_dev;
+        h_interp_dev.length = len;
+        h_interp_dev.f = interp->f;
+        h_interp_dev.t0 = interp->t0;
+        h_interp_dev.a = dev_a;
+
         cubic_interp *dev_interp;
-        cudaMalloc((void**)&dev_interp, sizeof(cubic_interp));
-        cudaMemcpy(dev_interp, interp, sizeof(cubic_interp), cudaMemcpyHostToDevice);
+        cudaMalloc(&dev_interp, sizeof(cubic_interp));
+        cudaMemcpy(dev_interp, &h_interp_dev, sizeof(cubic_interp), cudaMemcpyHostToDevice);
 
         // Iterates through the interpolation with varying evaluation counts
         int c = 10000;
@@ -61,7 +79,7 @@ extern void test_all_cubic_cuda(double **values, FILE *fp)
             for (int k = 0; k < c; k++) {
                 t[k] = rand() * 100;
             }
-            int threadsPerBlock = 256;
+            int threadsPerBlock = 1028;
             int blocksPerGrid = int((c+threadsPerBlock-1)/threadsPerBlock);
             cudaEvent_t start, stop;
             cudaEventCreate(&start);
@@ -91,8 +109,9 @@ extern void test_all_cubic_cuda(double **values, FILE *fp)
 
             c *= 10;
         }
-        // Frees dev_interp and interp
+        // Frees interp related variables
         cudaFree(dev_interp);
+        cudaFree(dev_a);
         cubic_interp_free(interp);
         printf("\n");
     }

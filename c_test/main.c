@@ -35,8 +35,8 @@ int main(int argc, char **argv) {
 
     // Executes the tests for onevalues and two values
     srand(time(NULL));
-    // test_all_cubic(onevalues, cfp);
-    // test_all_bicubic(twovalues, cfp);
+    //test_all_cubic(onevalues, cfp);
+    //test_all_bicubic(twovalues, cfp);
     test_all_cubic_cuda(onevalues, cudafp);
 
     // Frees onevalues and twovalues
