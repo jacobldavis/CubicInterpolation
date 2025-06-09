@@ -48,6 +48,8 @@ extern void test_all_cubic_cuda(double **values, FILE *fp)
             int threadsPerBlock = 256;
             int blocksPerGrid = int((c+threadsPerBlock-1)/threadsPerBlock);
             cudaEvent_t start, stop;
+            cudaEventCreate(&start);
+            cudaEventCreate(&stop);
             float elapsedTime;
 
             // Copies t to the GPU
@@ -59,14 +61,16 @@ extern void test_all_cubic_cuda(double **values, FILE *fp)
             cudaEventRecord(start, 0);
             cubic_interp_eval<<<blocksPerGrid,threadsPerBlock>>>(dev_interp, dev_t);
             cudaEventRecord(stop, 0);
-            cudaMemcpy(t, dev_t, c*sizeof(double), cudaMemcpyDeviceToHost); // include or exclude from timing?
             cudaEventSynchronize(stop);
             cudaEventElapsedTime(&elapsedTime, start, stop);
+            cudaMemcpy(t, dev_t, c*sizeof(double), cudaMemcpyDeviceToHost); // include or exclude from timing?
             printf("Time for size %d and iterations %d is %lf\n", n_values[i], c, elapsedTime);
             fprintf(fp, "%d,%d,%lf\n", n_values[i], c, elapsedTime);
 
-            // Frees t and dev_t
+            // Frees t, dev_t, and events
             cudaFree(dev_t);
+            cudaEventDestroy(start);
+            cudaEventDestroy(stop);
             free(t);
 
             c *= 10;
