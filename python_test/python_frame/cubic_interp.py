@@ -1,0 +1,44 @@
+'''
+ * Copyright (C) 2025 Jacob Davis
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * 
+ * The purpose of this program is to provide different 
+ * python implementations for a cubic interpolation.
+ *
+'''
+import numpy as np
+
+class cubic_interp_numpy:
+    def __init__(self, data, n, tmin, dt):
+        self.f = 1 / dt
+        self.t0 = 3 - self.f * tmin
+        self.length = n + 6
+        self.a = []
+        for i in range(self.length):
+            z = [0,0,0,0]
+            for j in z:
+                z[j] = data[min(max(i+j-4,0),n-1)]
+            if np.isnan(z[1]) or np.isinf(z[1]) or np.isnan(z[2]) or np.isinf(z[2]):
+                self.a.append([0,0,0,z[1]])
+            elif np.isnan(z[0]) or np.isinf(z[0]) or np.isnan(z[3]) or np.isinf(z[3]):
+                self.a.append([0,0,z[2]-z[1],z[1]])
+            else:
+                self.a.append([1.5 * (z[1] - z[2]) + 0.5 * (z[3] - z[0]),
+                                z[0] - 2.5 * z[1] + 2 * z[2] - 0.5 * z[3],
+                                0.5 * (z[2] - z[0]), z[1]])
+
+            
+
+
