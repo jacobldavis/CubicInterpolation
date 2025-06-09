@@ -30,20 +30,20 @@ int main(int argc, char **argv) {
     // Reads the files for input values and creates a csv
     double **onevalues = read_1dvalues();
     double ***twovalues = read_2dvalues();
-    //FILE *cfp = fopen("c_data.csv", "w");
-    FILE* cudafp = fopen("cuda_data.csv", "w");
+    FILE *cfp = fopen("c_data.csv", "w");
+    //FILE* cudafp = fopen("cuda_data.csv", "w");
 
     // Executes the tests for onevalues and two values
     srand(time(NULL));
-    // test_all_cubic(onevalues, cfp);
-    // test_all_bicubic(twovalues, cfp);
-    test_all_cubic_cuda(onevalues, cudafp);
+    test_all_cubic(onevalues, cfp);
+    test_all_bicubic(twovalues, cfp);
+    //test_all_cubic_cuda(onevalues, cudafp);
 
     // Frees onevalues and twovalues
     free1d(onevalues);
     free2d(twovalues);
-    //fclose(cfp);
-    fclose(cudafp);
+    fclose(cfp);
+    //fclose(cudafp);
 
     return 0;
 }
@@ -124,6 +124,7 @@ void test_cubic(int i, double* values, FILE* fp) {
 void test_all_cubic(double** values, FILE* fp) {
     // Runs the test for all values of n
     printf("\nTesting cubic:\n");
+    fprintf(fp, "Data,Iterations,Time\n");
     for (int i = 0; i < n_values_size; i++) {
         test_cubic(i, values[i], fp);
     }

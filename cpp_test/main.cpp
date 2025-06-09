@@ -31,17 +31,17 @@ int main(int argc, char **argv) {
     // Reads the files for input values
     double **onevalues = read_1dvalues();
     FILE *xfp = fopen("xtensor_data.csv", "w");
-    //FILE *efp = fopen("eigen_data.csv", "w");
+    FILE *efp = fopen("eigen_data.csv", "w");
 
     // Executes the tests for onevalues
     srand(time(NULL));
     test_all_cubic_xtensor(onevalues, xfp);
-    //test_all_cubic_eigen(onevalues, efp);
+    test_all_cubic_eigen(onevalues, efp);
 
     // Frees onevalues
     free1d(onevalues);
     fclose(xfp);
-    //fclose(efp);
+    fclose(efp);
 
     return 0;
 }
@@ -116,6 +116,7 @@ void test_cubic_xtensor(int i, double* values, FILE* fp) {
 void test_all_cubic_xtensor(double** values, FILE* fp) {
     // Runs the test for all values of n
     printf("\nTesting cubic:\n");
+    fprintf(fp, "Data,Iterations,Time\n");
     for (int i = 0; i < n_values_size; i++) {
         test_cubic_xtensor(i, values[i], fp);
     }
@@ -150,6 +151,7 @@ void test_cubic_eigen(int i, double* values, FILE* fp) {
 void test_all_cubic_eigen(double** values, FILE* fp) {
     // Runs the test for all values of n
     printf("\nTesting cubic:\n");
+    fprintf(fp, "Data,Iterations,Time\n");
     for (int i = 0; i < n_values_size; i++) {
         test_cubic_eigen(i, values[i], fp);
     }
