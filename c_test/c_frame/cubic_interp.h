@@ -45,6 +45,11 @@
 typedef struct cubic_interp cubic_interp;
 typedef struct bicubic_interp bicubic_interp;
 
+struct cubic_interp {
+    double f, t0, length;
+    double a[][4];
+};
+
 __attribute__ ((malloc))
 cubic_interp *cubic_interp_init(
     const double *data, int n, double tmin, double dt);

@@ -20,10 +20,61 @@
 #include <cuda_runtime.h>
 #include "kernel.h"
 
-__global__ void vectorAdd() {
+__global__ void cubic_interp_eval(cubic_interp* dev_interp, double* dev_t) {
     //int idx = blockIdx.x * blockDim.x + threadIdx.x;
 }
 
-extern double* test_all_cubic_cuda(double **values, FILE *fp) {
-    return values[0];
+extern void test_all_cubic_cuda(double **values, FILE *fp) 
+{
+    printf("Testing CUDA cubic\n");
+    fprintf(fp, "Data,Iterations,Time\n");
+
+    // Iterates through the test for each size in n_values
+    for (int i = 0; i < n_values_size; i++) {
+        // Initializes cubic_interp and copies to the GPU
+        cubic_interp *interp = cubic_interp_init(values[i], n_values[i], -1, 1);
+        cubic_interp *dev_interp;
+        cudaMalloc((void**)&dev_interp, sizeof(cubic_interp));
+        cudaMemcpy(dev_interp, interp, sizeof(cubic_interp), cudaMemcpyHostToDevice);
+
+        // Iterates through the interpolation with varying evaluation counts
+        int c = 10000;
+        for (int m = 1; m < 5; m++) {
+            // Precomputes random values and other relevant vars for CUDA
+            double* t = (double*)malloc(c * sizeof(double));
+            for (int k = 0; k < c; k++) {
+                t[k] = rand() * 100;
+            }
+            int threadsPerBlock = 256;
+            int blocksPerGrid = int((c+threadsPerBlock-1)/threadsPerBlock);
+            cudaEvent_t start, stop;
+            float elapsedTime;
+
+            // Copies t to the GPU
+            double* dev_t;
+            cudaMalloc( (void**)&dev_t, c*sizeof(double));
+            cudaMemcpy(dev_t, t, c*sizeof(double), cudaMemcpyHostToDevice);
+
+            // Performs benchmark and records time
+            cudaEventRecord(start, 0);
+            cubic_interp_eval<<<blocksPerGrid,threadsPerBlock>>>(dev_interp, dev_t);
+            cudaEventRecord(stop, 0);
+            cudaMemcpy(t, dev_t, c*sizeof(double), cudaMemcpyDeviceToHost); // include or exclude from timing?
+            cudaEventSynchronize(stop);
+            cudaEventElapsedTime(&elapsedTime, start, stop);
+            printf("Time for size %d and iterations %d is %lf\n", n_values[i], c, elapsedTime);
+            fprintf(fp, "%d,%d,%lf\n", n_values[i], c, elapsedTime);
+
+            // Frees t and dev_t
+            cudaFree(dev_t);
+            free(t);
+
+            c *= 10;
+        }
+        // Frees dev_interp and interp
+        cudaFree(dev_interp);
+        cubic_interp_free(interp);
+        printf("\n");
+    }
+
 }
