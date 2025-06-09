@@ -22,6 +22,7 @@
 #include <stdalign.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 /* Allow contraction of a * b + c to a faster fused multiply-add operation.
  * This pragma is supposedly standard C, but only clang seems to support it.
@@ -76,7 +77,8 @@ cubic_interp *cubic_interp_init(
     const double *data, int n, double tmin, double dt)
 {
     const int length = n + 6;
-    cubic_interp *interp = malloc(sizeof(*interp) + length * sizeof(*interp->a));
+    cubic_interp *interp = malloc(sizeof(*interp));
+    interp->a = malloc(length * sizeof(*interp->a));
     if (LIKELY(interp))
     {
         interp->f = 1 / dt;
@@ -98,7 +100,10 @@ cubic_interp *cubic_interp_init(
 
 void cubic_interp_free(cubic_interp *interp)
 {
-    free(interp);
+    if (interp) {
+        free(interp->a);
+        free(interp);
+    }
 }
 
 
