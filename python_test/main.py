@@ -76,10 +76,13 @@ def test_all_cubic_torch():
         for iterations in iteration_counts:
             random = np.random.uniform(0, 100, iterations)
             random = torch.from_numpy(random).to(device)
-            start = time.perf_counter()
+            start_event = torch.cuda.Event(enable_timing=True)
+            end_event = torch.cuda.Event(enable_timing=True)
+            start_event.record()
             result = interp.cubic_interp_eval_torch(device, random)
-            end = time.perf_counter()
-            elapsed_time = end - start
+            end_event.record()
+            end_event.synchronize()
+            elapsed_time = start_event.elapsed_time(end_event) / 1000.0
             print(f"Time for size {n_value} and iterations {iterations} is {elapsed_time:.4g}")
             f.write(f"{n_value},{iterations},{elapsed_time:.4g}\n")
         print()
@@ -97,10 +100,13 @@ def test_all_cubic_cupy():
         for iterations in iteration_counts:
             random = np.random.uniform(0, 100, iterations)
             random = cp.asarray(random)
-            start = time.perf_counter()
+            start_gpu = cp.cuda.Event()
+            end_gpu = cp.cuda.Event()
+            start_gpu.record()
             result = interp.cubic_interp_eval_cp(random)
-            end = time.perf_counter()
-            elapsed_time = end - start
+            end_gpu.record()
+            end_gpu.synchronize()
+            elapsed_time = cp.cuda.get_elapsed_time(start_gpu, end_gpu) / 1000.0
             print(f"Time for size {n_value} and iterations {iterations} is {elapsed_time:.4g}")
             f.write(f"{n_value},{iterations},{elapsed_time:.4g}\n")
         print()
