@@ -19,6 +19,7 @@
  *
 '''
 import numpy as np
+import cupy as cp
 import torch
 import time
 from cubic_interp import *
