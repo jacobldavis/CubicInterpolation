@@ -38,6 +38,18 @@ class cubic_interp_np:
                 self.a.append([1.5 * (z[1] - z[2]) + 0.5 * (z[3] - z[0]),
                                 z[0] - 2.5 * z[1] + 2 * z[2] - 0.5 * z[3],
                                 0.5 * (z[2] - z[0]), z[1]])
+    
+    def cubic_interp_eval(self, data):
+        x = np.clip(data * self.f + self.t0, 0.0, self.length - 1.0)
+        ix = x.astype(int)
+        x -= ix
+        
+        a0 = self.a[ix, 0]
+        a1 = self.a[ix, 1]
+        a2 = self.a[ix, 2]
+        a3 = self.a[ix, 3]
+
+        return ((a0 * x + a1) * x + a2) * x + a3
 
             
 

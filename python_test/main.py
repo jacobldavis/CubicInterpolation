@@ -44,6 +44,7 @@ def test_all_cubic_np():
     # Iterates through the test for each size of data
     f = open('np_data.csv', 'w')
     f.write("Data,Iterations,Time")
+    print("Testing python cubic:")
     for i, n_value in enumerate(n_values):
         interp = cubic_interp_np(onevalues[i], n_value, -1, 1)
         interp.a = np.array(interp.a)
@@ -51,11 +52,12 @@ def test_all_cubic_np():
         for iterations in iteration_counts:
             random = np.random.uniform(0, 100, iterations)
             start = time.perf_counter()
-            # insert function here
+            result = interp.cubic_interp_eval(random)
             end = time.perf_counter()
             elapsed_time = end - start
-            print(f"Time for size {n_value} and iterations {iterations} is {elapsed_time}")
-            f.write(f"{n_value},{iterations},{elapsed_time}")
+            print(f"Time for size {n_value} and iterations {iterations} is {elapsed_time:.4g}")
+            f.write(f"{n_value},{iterations},{elapsed_time:.4g}")
+        print()
     f.close()
 
 test_all_cubic_np()
