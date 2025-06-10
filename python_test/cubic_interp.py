@@ -20,7 +20,7 @@
 '''
 import numpy as np
 
-class cubic_interp_numpy:
+class cubic_interp_np:
     def __init__(self, data, n, tmin, dt):
         self.f = 1 / dt
         self.t0 = 3 - self.f * tmin

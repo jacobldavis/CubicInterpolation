@@ -19,7 +19,10 @@
  *
 '''
 import numpy as np
+import time
+from cubic_interp import *
 n_values = [4, 10, 100, 400, 1000]
+iteration_counts = [10000, 100000, 1000000, 10000000]
 
 # Collects the 1d randomly generated values
 onevalues = []
@@ -36,3 +39,23 @@ with open('../2dvalues.txt', 'r') as f:
         str_values = line.strip().split(', ')
         float_values = np.array([float(val) for val in str_values])
         onevalues.append(float_values)
+
+def test_all_cubic_np():
+    # Iterates through the test for each size of data
+    f = open('np_data.csv', 'w')
+    f.write("Data,Iterations,Time")
+    for i, n_value in enumerate(n_values):
+        interp = cubic_interp_np(onevalues[i], n_value, -1, 1)
+        interp.a = np.array(interp.a)
+        # Iterates through the test for each iteration count
+        for iterations in iteration_counts:
+            random = np.random.uniform(0, 100, iterations)
+            start = time.perf_counter()
+            # insert function here
+            end = time.perf_counter()
+            elapsed_time = end - start
+            print(f"Time for size {n_value} and iterations {iterations} is {elapsed_time}")
+            f.write(f"{n_value},{iterations},{elapsed_time}")
+    f.close()
+
+test_all_cubic_np()
