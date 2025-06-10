@@ -58,7 +58,7 @@ def test_all_cubic_np():
             end = time.perf_counter()
             elapsed_time = end - start
             print(f"Time for size {n_value} and iterations {iterations} is {elapsed_time:.4g}")
-            f.write(f"{n_value},{iterations},{elapsed_time:.4g}")
+            f.write(f"{n_value},{iterations},{elapsed_time:.4g}\n")
         print()
     f.close()
 
@@ -81,7 +81,7 @@ def test_all_cubic_torch():
             end = time.perf_counter()
             elapsed_time = end - start
             print(f"Time for size {n_value} and iterations {iterations} is {elapsed_time:.4g}")
-            f.write(f"{n_value},{iterations},{elapsed_time:.4g}")
+            f.write(f"{n_value},{iterations},{elapsed_time:.4g}\n")
         print()
     f.close()
 
