@@ -44,7 +44,7 @@ with open('../2dvalues.txt', 'r') as f:
 
 def test_all_cubic_np():
     f = open('np_data.csv', 'w')
-    f.write("Data,Iterations,Time")
+    f.write("Data,Iterations,Time\n")
     print("Testing np cubic:")
     # Iterates through the test for each size of data
     for i, n_value in enumerate(n_values):
@@ -65,7 +65,7 @@ def test_all_cubic_np():
 
 def test_all_cubic_torch():
     f = open('torch_data.csv', 'w')
-    f.write("Data,Iterations,Time")
+    f.write("Data,Iterations,Time\n")
     print("Testing torch cubic:")
     # Iterates through the test for each size of data
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
