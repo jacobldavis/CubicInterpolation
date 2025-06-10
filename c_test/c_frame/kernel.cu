@@ -35,7 +35,7 @@ __global__ void cubic_interp_eval(int c, cubic_interp* dev_interp, double* dev_t
         x = f * x + t0;
         x = fmin(fmax(x, xmin), xmax);
 
-        int ix = (int)x;
+        int ix = floor(x);
         x -= ix;
 
         const double *a = dev_interp->a[ix];
@@ -78,8 +78,9 @@ extern void test_all_cubic_cuda(double **values, FILE *fp)
             for (int k = 0; k < c; k++) {
                 t[k] = rand() * 100;
             }
-            // TODO: update this to probe device characteristics
-            int threadsPerBlock = 1028;
+            cudaDeviceProp prop;
+            cudaGetDeviceProperties(&prop, 0);
+            int threadsPerBlock = 128;
             int blocksPerGrid = int((c+threadsPerBlock-1)/threadsPerBlock);
             cudaEvent_t start, stop;
             cudaEventCreate(&start);
@@ -98,8 +99,8 @@ extern void test_all_cubic_cuda(double **values, FILE *fp)
             cudaEventSynchronize(stop);
             cudaEventElapsedTime(&elapsedTime, start, stop);
             cudaMemcpy(t, dev_t, c*sizeof(double), cudaMemcpyDeviceToHost); // include or exclude from timing?
-            printf("Time for size %d and iterations %d is %lf\n", n_values[i], c, elapsedTime);
-            fprintf(fp, "%d,%d,%lf\n", n_values[i], c, elapsedTime);
+            printf("Time for size %d and iterations %d is %lf\n", n_values[i], c, elapsedTime / 1000.0);
+            fprintf(fp, "%d,%d,%lf\n", n_values[i], c, elapsedTime / 1000.0);
 
             // Frees t, dev_t, and events
             cudaFree(dev_t);
