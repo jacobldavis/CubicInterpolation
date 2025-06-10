@@ -48,7 +48,7 @@ def test_all_cubic_np():
     print("Testing np cubic:")
     # Iterates through the test for each size of data
     for i, n_value in enumerate(n_values):
-        interp = cubic_interp_np(onevalues[i], n_value, -1, 1)
+        interp = cubic_interp(onevalues[i], n_value, -1, 1)
         interp.a = np.array(interp.a)
         # Iterates through the test for each iteration count
         for iterations in iteration_counts:
@@ -70,7 +70,7 @@ def test_all_cubic_torch():
     # Iterates through the test for each size of data
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     for i, n_value in enumerate(n_values):
-        interp = cubic_interp_np(onevalues[i], n_value, -1, 1)
+        interp = cubic_interp(onevalues[i], n_value, -1, 1)
         interp.a = torch.tensor(interp.a).to(device)
         # Iterates through the test for each iteration count
         for iterations in iteration_counts:
@@ -85,5 +85,27 @@ def test_all_cubic_torch():
         print()
     f.close()
 
+def test_all_cubic_cupy():
+    f = open('cp_data.csv', 'w')
+    f.write("Data,Iterations,Time\n")
+    print("Testing cupy cubic:")
+    # Iterates through the test for each size of data
+    for i, n_value in enumerate(n_values):
+        interp = cubic_interp(onevalues[i], n_value, -1, 1)
+        interp.a = cp.array(interp.a)
+        # Iterates through the test for each iteration count
+        for iterations in iteration_counts:
+            random = np.random.uniform(0, 100, iterations)
+            random = cp.asarray(random)
+            start = time.perf_counter()
+            result = interp.cubic_interp_eval_cp(random)
+            end = time.perf_counter()
+            elapsed_time = end - start
+            print(f"Time for size {n_value} and iterations {iterations} is {elapsed_time:.4g}")
+            f.write(f"{n_value},{iterations},{elapsed_time:.4g}\n")
+        print()
+    f.close()
+
 test_all_cubic_np()
 test_all_cubic_torch()
+test_all_cubic_cupy()

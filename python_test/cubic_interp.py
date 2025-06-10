@@ -22,7 +22,7 @@ import numpy as np
 import cupy as cp
 import torch
 
-class cubic_interp_np:
+class cubic_interp:
     def __init__(self, data, n, tmin, dt):
         self.f = 1 / dt
         self.t0 = 3 - self.f * tmin
@@ -65,6 +65,17 @@ class cubic_interp_np:
 
         return ((a0 * x + a1) * x + a2) * x + a3
 
+    def cubic_interp_eval_cp(self, data):
+        x = cp.clip(data * self.f + self.t0, 0.0, self.length - 1.0)
+        ix = x.astype(cp.int32) 
+        x -= ix
+
+        a0 = self.a[ix, 0]
+        a1 = self.a[ix, 1]
+        a2 = self.a[ix, 2]
+        a3 = self.a[ix, 3]
+
+        return ((a0 * x + a1) * x + a2) * x + a3
             
 
 
