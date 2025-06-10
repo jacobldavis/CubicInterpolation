@@ -52,23 +52,22 @@ extern void test_all_cubic_cuda(double **values, FILE *fp)
 
     // Iterates through the test for each size in n_values
     for (int i = 0; i < n_values_size; i++) {
-        // Initializes cubic_interp and copies to the GPU
+        // Initializes cubic_interp
         cubic_interp *interp = cubic_interp_init(values[i], n_values[i], -1, 1);
-        double (*host_a)[4] = interp->a;
-        int len = interp->length;
 
+        // Creates device copy of interp->a
         double (*dev_a)[4];
-        cudaMalloc(&dev_a, len * sizeof(double[4]));
-        cudaMemcpy(dev_a, host_a, len * sizeof(double[4]), cudaMemcpyHostToDevice);
+        cudaMalloc((void**)&dev_a, interp->length * sizeof(double[4]));
+        cudaMemcpy(dev_a, interp->a, interp->length * sizeof(double[4]), cudaMemcpyHostToDevice);
 
+        // Creates device copy of interp
         cubic_interp h_interp_dev;
-        h_interp_dev.length = len;
+        h_interp_dev.length = interp->length;
         h_interp_dev.f = interp->f;
         h_interp_dev.t0 = interp->t0;
         h_interp_dev.a = dev_a;
-
         cubic_interp *dev_interp;
-        cudaMalloc(&dev_interp, sizeof(cubic_interp));
+        cudaMalloc((void**)&dev_interp, sizeof(cubic_interp));
         cudaMemcpy(dev_interp, &h_interp_dev, sizeof(cubic_interp), cudaMemcpyHostToDevice);
 
         // Iterates through the interpolation with varying evaluation counts
@@ -79,7 +78,7 @@ extern void test_all_cubic_cuda(double **values, FILE *fp)
             for (int k = 0; k < c; k++) {
                 t[k] = rand() * 100;
             }
-            // TODO: update this to probe GPU characteristics
+            // TODO: update this to probe device characteristics
             int threadsPerBlock = 1028;
             int blocksPerGrid = int((c+threadsPerBlock-1)/threadsPerBlock);
             cudaEvent_t start, stop;
@@ -87,7 +86,7 @@ extern void test_all_cubic_cuda(double **values, FILE *fp)
             cudaEventCreate(&stop);
             float elapsedTime;
 
-            // Copies t to the GPU
+            // Copies t to the device
             double* dev_t;
             cudaMalloc( (void**)&dev_t, c * sizeof(double));
             cudaMemcpy(dev_t, t, c * sizeof(double), cudaMemcpyHostToDevice);
