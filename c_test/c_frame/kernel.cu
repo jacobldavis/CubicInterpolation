@@ -80,7 +80,7 @@ extern void test_all_cubic_cuda(double **values, FILE *fp)
             }
             cudaDeviceProp prop;
             cudaGetDeviceProperties(&prop, 0);
-            int threadsPerBlock = 128;
+            int threadsPerBlock = min(prop.maxThreadsPerBlock, 128);
             int blocksPerGrid = int((c+threadsPerBlock-1)/threadsPerBlock);
             cudaEvent_t start, stop;
             cudaEventCreate(&start);
