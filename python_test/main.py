@@ -23,7 +23,7 @@ import cupy as cp
 import torch
 import time
 from cubic_interp import *
-n_values = [4, 10, 100, 400, 1000]
+n_values = [4, 9, 100, 400, 1024]
 iteration_counts = [10000, 100000, 1000000, 10000000]
 
 # Collects the 1d randomly generated values
@@ -133,5 +133,4 @@ def test_all_cubic_cupy():
 test_all_cubic_np()
 test_all_cubic_torch()
 test_all_cubic_cupy()
-#print(twovalues)
 #test_all_bicubic_np()

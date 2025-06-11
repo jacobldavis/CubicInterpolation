@@ -21,7 +21,7 @@
 '''
 
 import numpy as np
-n_values = [4, 10, 100, 400, 1000]
+n_values = [4, 9, 100, 400, 1024]
 
 with open('1dvalues.txt', 'w') as f:
     for n in n_values:

@@ -23,7 +23,7 @@
 
 #include <stdio.h>
 
-static const int n_values[5] = {4, 10, 100, 400, 1000};
+static const int n_values[5] = {4, 9, 100, 400, 1024};
 static const int n_values_size = 5;
 
 /* 
