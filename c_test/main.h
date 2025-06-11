@@ -66,4 +66,4 @@ void test_bicubic(int i, double** values, FILE* fp);
  */
 void test_all_bicubic(double*** values, FILE* fp);
 
-#endif /* CUBIC_INTERP_H */
+#endif 

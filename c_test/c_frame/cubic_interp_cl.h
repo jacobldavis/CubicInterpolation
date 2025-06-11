@@ -17,17 +17,16 @@
  * The purpose of this program is to control profiling
  * different frameworks for a cubic interpolation.
  */
+#ifndef CUBIC_INTERP_CL_H
+#define CUBIC_INTERP_CL_H
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stdio.h>
 #include "cubic_interp.h"
 #include "../main.h"
-
-void test_all_cubic_cuda(double **values, FILE *fp);
-
+void test_all_cubic_cl(double **values, FILE *fp);
 #ifdef __cplusplus
 }
+#endif
 #endif
 

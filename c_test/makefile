@@ -2,12 +2,14 @@ CC = gcc
 NVCC = nvcc
 CFLAGS = -O3 -march=native -Ic_frame
 NVCCFLAGS = -O3 -Ic_frame
-LDFLAGS = -lgsl -lm -lcudart
+LDFLAGS = -lgsl -lm -lcudart -lOpenCL
 
 C_SRC = main.c $(wildcard c_frame/*.c)
 CUDA_SRC = c_frame/kernel.cu
-C_OBJ = $(C_SRC:.c=.o)
-CUDA_OBJ = $(CUDA_SRC:.cu=.o)
+
+BUILD_DIR = build
+C_OBJ = $(patsubst %.c,$(BUILD_DIR)/%.o,$(C_SRC))
+CUDA_OBJ = $(patsubst %.cu,$(BUILD_DIR)/%.o,$(CUDA_SRC))
 OBJ = $(C_OBJ) $(CUDA_OBJ)
 
 TARGET = main.out
@@ -17,14 +19,16 @@ all: $(TARGET)
 $(TARGET): $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $(OBJ) $(LDFLAGS)
 
-%.o: %.c
+$(BUILD_DIR)/%.o: %.c
+	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-%.o: %.cu
+$(BUILD_DIR)/%.o: %.cu
+	@mkdir -p $(@D)
 	$(NVCC) $(NVCCFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJ) $(TARGET)
+	rm -rf $(BUILD_DIR) $(TARGET)
 
 run: $(TARGET)
 	./$(TARGET)
