@@ -62,7 +62,6 @@ def test_all_cubic_np():
         print()
     f.close()
 
-
 def test_all_cubic_torch():
     f = open('torch_data.csv', 'w')
     f.write("Data,Iterations,Time\n")
