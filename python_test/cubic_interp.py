@@ -77,5 +77,40 @@ class cubic_interp:
 
         return ((a0 * x + a1) * x + a2) * x + a3
             
-
-
+class bicubic_interp:
+    def __init__(self, data, ns, nt, smin, tmin, ds, dt):
+        self.fx = [1/ds, 1/dt]
+        self.x0 = [3 - self.fx[0] * smin, 3 - self.fx[1] * tmin]
+        self.xlength = [ns + 6, nt + 6]
+        self.a = np.zeros((self.xlength[0]+self.xlength[1], 4, 4), dtype=np.float64)
+        for iss in range(self.xlength[0]):
+            for itt in range(self.xlength[1]):
+                a = np.zeros((4, 4), dtype=np.float64)
+                a1 = np.zeros((4, 4), dtype=np.float64)
+                for js in range(4):
+                    z = np.zeros(4, dtype=np.float64)
+                    ks = np.clip(iss + js - 4, 0, nt - 1)
+                    for jt in range(4):
+                        kt = np.clip(itt + jt - 4, 0, nt - 1)
+                        z[jt] = data[ks * ns + kt]
+                        if np.isnan(z[1]) or np.isinf(z[1]) or np.isnan(z[2]) or np.isinf(z[2]):
+                            a[js] = [0,0,0,z[1]]
+                        elif np.isnan(z[0]) or np.isinf(z[0]) or np.isnan(z[3]) or np.isinf(z[3]):
+                            a[js] = [0,0,z[2]-z[1],z[1]]
+                        else:
+                            a[js] = [1.5 * (z[1] - z[2]) + 0.5 * (z[3] - z[0]),
+                                            z[0] - 2.5 * z[1] + 2 * z[2] - 0.5 * z[3],
+                                            0.5 * (z[2] - z[0]), z[1]]
+                for js in range(4):
+                    for jt in range(4):
+                        a1[js][jt] = a[jt][js]
+                for js in range(4):
+                    if np.isnan(a1[3][1]) or np.isinf(a1[3][1]) or np.isnan(a1[3][2]) or np.isinf(a1[3][2]):
+                        a[js] = [0,0,0,a1[js][1]]
+                    elif np.isnan(a1[3][0]) or np.isinf(a1[3][0]) or np.isnan(a1[3][3]) or np.isinf(a1[3][3]):
+                        a[js] = [0,0,a1[js][2]-a1[js][1],a1[js][1]]
+                    else:
+                        a[js] = [1.5 * (a1[js][1] - a1[js][2]) + 0.5 * (a1[js][3] - a1[js][0]),
+                                        a1[js][0] - 2.5 * a1[js][1] + 2 * a1[js][2] - 0.5 * a1[js][3],
+                                        0.5 * (a1[js][2] - a1[js][0]), a1[js][1]]
+                self.a[iss * self.xlength[0] + itt] = a
