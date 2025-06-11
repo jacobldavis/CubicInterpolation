@@ -40,7 +40,7 @@ with open('../2dvalues.txt', 'r') as f:
     for line in f:
         str_values = line.strip().split(', ')
         float_values = np.array([float(val) for val in str_values])
-        onevalues.append(float_values)
+        twovalues.append(float_values)
 
 def test_all_cubic_np():
     f = open('np_data.csv', 'w')
@@ -55,6 +55,25 @@ def test_all_cubic_np():
             random = np.random.uniform(0, 100, iterations)
             start = time.perf_counter()
             result = interp.cubic_interp_eval_np(random)
+            end = time.perf_counter()
+            elapsed_time = end - start
+            print(f"Time for size {n_value} and iterations {iterations} is {elapsed_time:.4g}")
+            f.write(f"{n_value},{iterations},{elapsed_time:.4g}\n")
+        print()
+    f.close()
+
+def test_all_bicubic_np():
+    f = open('bi_np_data.csv', 'w')
+    f.write("Data,Iterations,Time\n")
+    print("Testing np bicubic:")
+    # Iterates through the test for each size of data
+    for i, n_value in enumerate(n_values):
+        interp = bicubic_interp(twovalues[i], n_value, n_value, -1, -1, 1, 1)
+        # Iterates through the test for each iteration count
+        for iterations in iteration_counts:
+            random = np.random.uniform(0, 100, iterations)
+            start = time.perf_counter()
+            result = interp.bicubic_interp_eval_np(random)
             end = time.perf_counter()
             elapsed_time = end - start
             print(f"Time for size {n_value} and iterations {iterations} is {elapsed_time:.4g}")
@@ -114,3 +133,5 @@ def test_all_cubic_cupy():
 test_all_cubic_np()
 test_all_cubic_torch()
 test_all_cubic_cupy()
+#print(twovalues)
+#test_all_bicubic_np()

@@ -82,14 +82,14 @@ class bicubic_interp:
         self.fx = [1/ds, 1/dt]
         self.x0 = [3 - self.fx[0] * smin, 3 - self.fx[1] * tmin]
         self.xlength = [ns + 6, nt + 6]
-        self.a = np.zeros((self.xlength[0]+self.xlength[1], 4, 4), dtype=np.float64)
+        self.a = np.zeros((self.xlength[0]*self.xlength[1], 4, 4), dtype=np.float64)
         for iss in range(self.xlength[0]):
             for itt in range(self.xlength[1]):
                 a = np.zeros((4, 4), dtype=np.float64)
                 a1 = np.zeros((4, 4), dtype=np.float64)
                 for js in range(4):
                     z = np.zeros(4, dtype=np.float64)
-                    ks = np.clip(iss + js - 4, 0, nt - 1)
+                    ks = np.clip(iss + js - 4, 0, ns - 1)
                     for jt in range(4):
                         kt = np.clip(itt + jt - 4, 0, nt - 1)
                         z[jt] = data[ks * ns + kt]
@@ -114,3 +114,6 @@ class bicubic_interp:
                                         a1[js][0] - 2.5 * a1[js][1] + 2 * a1[js][2] - 0.5 * a1[js][3],
                                         0.5 * (a1[js][2] - a1[js][0]), a1[js][1]]
                 self.a[iss * self.xlength[0] + itt] = a
+
+    def bicubic_interp_eval_np(self, data):
+        print("hi")
