@@ -79,9 +79,9 @@ class cubic_interp:
             
 class bicubic_interp:
     def __init__(self, data, ns, nt, smin, tmin, ds, dt):
-        self.fx = [1/ds, 1/dt]
-        self.x0 = [3 - self.fx[0] * smin, 3 - self.fx[1] * tmin]
-        self.xlength = [ns + 6, nt + 6]
+        self.fx = np.array([1/ds, 1/dt])
+        self.x0 = np.array([3 - self.fx[0] * smin, 3 - self.fx[1] * tmin])
+        self.xlength = np.array([ns + 6, nt + 6])
         self.a = np.zeros((self.xlength[0]*self.xlength[1], 4, 4), dtype=np.float64)
         for iss in range(self.xlength[0]):
             for itt in range(self.xlength[1]):
@@ -115,5 +115,18 @@ class bicubic_interp:
                                         0.5 * (a1[js][2] - a1[js][0]), a1[js][1]]
                 self.a[iss * self.xlength[0] + itt] = a
 
-    def bicubic_interp_eval_np(self, data):
-        print("hi")
+    # def bicubic_interp_eval_np(self, s, t):
+    #     x = np.vstack((s, t)).T 
+    #     xmin = np.array([0.0, 0.0])
+    #     xmax = np.array(self.xlength) - 1.0
+        
+    #     x = x * self.fx + self.x0
+    #     x = np.clip(x, xmin, xmax)
+        
+    #     ix = np.floor(x).astype(int)
+    #     x -= ix
+        
+    #     indices = ix[:, 0] * self.xlength[0] + ix[:, 1]
+    #     a = self.a[indices] 
+    #     b = ((a[:,0] * x[:,1] + a[:,1]) * x[:,1] + a[:,2]) * x[:,1] + a[:,3]
+    #     return ((b[:,0] * x[:,0] + b[:,1]) * x[:,0] + b[:,2]) * x[:,0] + b[:,3]

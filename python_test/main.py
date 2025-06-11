@@ -54,25 +54,6 @@ def test_all_cubic_np():
         print()
     f.close()
 
-def test_all_bicubic_np():
-    f = open('bi_np_data.csv', 'w')
-    f.write("Data,Iterations,Time\n")
-    print("Testing np bicubic:")
-    # Iterates through the test for each size of data
-    for i, n_value in enumerate(n_values):
-        interp = bicubic_interp(onevalues[i], int(np.sqrt(n_value)), int(np.sqrt(n_value)), -1, -1, 1, 1)
-        # Iterates through the test for each iteration count
-        for iterations in iteration_counts:
-            random = np.random.uniform(0, 100, iterations)
-            start = time.perf_counter()
-            result = interp.bicubic_interp_eval_np(random)
-            end = time.perf_counter()
-            elapsed_time = end - start
-            print(f"Time for size {n_value} and iterations {iterations} is {elapsed_time:.4g}")
-            f.write(f"{n_value},{iterations},{elapsed_time:.4g}\n")
-        print()
-    f.close()
-
 def test_all_cubic_torch():
     f = open('torch_data.csv', 'w')
     f.write("Data,Iterations,Time\n")
@@ -122,7 +103,26 @@ def test_all_cubic_cupy():
         print()
     f.close()
 
-test_all_cubic_np()
-test_all_cubic_torch()
-test_all_cubic_cupy()
-test_all_bicubic_np()
+# test_all_cubic_np()
+# test_all_cubic_torch()
+# test_all_cubic_cupy()
+
+# def test_all_bicubic_np():
+#     f = open('bi_np_data.csv', 'w')
+#     f.write("Data,Iterations,Time\n")
+#     print("Testing np bicubic:")
+#     # Iterates through the test for each size of data
+#     for i, n_value in enumerate(n_values):
+#         interp = bicubic_interp(onevalues[i], int(np.sqrt(n_value)), int(np.sqrt(n_value)), -1, -1, 1, 1)
+#         # Iterates through the test for each iteration count
+#         for iterations in iteration_counts:
+#             randomu = np.random.uniform(0, 100, iterations)
+#             randomv = np.random.uniform(0, 100, iterations)
+#             start = time.perf_counter()
+#             result = interp.bicubic_interp_eval_np(randomu, randomv)
+#             end = time.perf_counter()
+#             elapsed_time = end - start
+#             print(f"Time for size {n_value} and iterations {iterations} is {elapsed_time:.4g}")
+#             f.write(f"{n_value},{iterations},{elapsed_time:.4g}\n")
+#         print()
+#     f.close()
