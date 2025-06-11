@@ -30,7 +30,6 @@
 int main(int argc, char **argv) {
     // Reads the files for input values and creates a csv
     double **onevalues = read_1dvalues();
-    double ***twovalues = read_2dvalues();
     FILE* cfp = fopen("c_data.csv", "w");
     FILE* bicfp = fopen("bi_c_data.csv", "w");
     FILE* cudafp = fopen("cuda_data.csv", "w");
@@ -39,13 +38,12 @@ int main(int argc, char **argv) {
     // Executes the tests for onevalues and two values
     srand(time(NULL));
     test_all_cubic(onevalues, cfp);
-    test_all_bicubic(twovalues, bicfp);
+    test_all_bicubic(onevalues, bicfp);
     test_all_cubic_cuda(onevalues, cudafp);
     test_all_cubic_cl(onevalues, clfp);
 
     // Frees onevalues and twovalues and closes files
     free1d(onevalues);
-    free2d(twovalues);
     fclose(cfp);
     fclose(bicfp);
     fclose(cudafp);
@@ -66,29 +64,6 @@ double **read_1dvalues() {
     for (int i = 0; i < n_values_size; i++) {
         for (int j = 0; j < n_values[i]; j++) {
             int x = fscanf(file, "%lf, ", &values[i][j]);
-        }
-    }
-
-    return values;
-}
-
-double ***read_2dvalues() {
-    // Allocates memory for values based on n_values.
-    double*** values = (double***)malloc(n_values_size * sizeof(double**));
-    for (int i = 0; i < n_values_size; i++) {
-        values[i] = (double**)malloc(n_values[i] * sizeof(double*));
-        for (int j = 0; j < n_values[i]; j++) {
-            values[i][j] = (double*)malloc(n_values[i] * sizeof(double));
-        }
-    }
-
-    // Reads and returns the values from 1dvalues.txt into values.
-    FILE *file = fopen("../2dvalues.txt", "r");
-    for (int i = 0; i < n_values_size; i++) {
-        for (int j = 0; j < n_values[i]; j++) {
-            for (int k = 0; k < n_values[i]; k++) {
-                int x = fscanf(file, "%lf, ", &values[i][j][k]);
-            }
         }
     }
 
@@ -136,11 +111,12 @@ void test_all_cubic(double** values, FILE* fp) {
     }
 }
 
-void test_bicubic(int i, double** values, FILE* fp) {
+void test_bicubic(int i, double* values, FILE* fp) {
     // Initializes time recording variables and bicubic_interp
     clock_t start, end;
     double cpu_time_used;
-    bicubic_interp *interp = bicubic_interp_init(*values, n_values[i], n_values[i], -1, -1, 1, 1);
+    int n_value = sqrt(n_values[i]);
+    bicubic_interp *interp = bicubic_interp_init(values, n_value, n_value, -1, -1, 1, 1);
 
     // Iterates through the interpolation with varying loop operation counts
     int c = 10000;
@@ -174,7 +150,7 @@ void test_bicubic(int i, double** values, FILE* fp) {
     bicubic_interp_free(interp);
 }
 
-void test_all_bicubic(double*** values, FILE* fp) {
+void test_all_bicubic(double** values, FILE* fp) {
     // Runs the test for all values of n
     printf("\nTesting bicubic:\n");
     for (int i = 0; i < n_values_size; i++) {
@@ -184,16 +160,6 @@ void test_all_bicubic(double*** values, FILE* fp) {
 
 void free1d(double** values) {
     for (int i = 0; i < n_values_size; i++) {
-        free(values[i]);
-    }
-    free(values);
-}
-
-void free2d(double*** values) {
-    for (int i = 0; i < n_values_size; i++) {
-        for (int j = 0; j < n_values[i]; j++) {
-            free(values[i][j]);
-        }
         free(values[i]);
     }
     free(values);

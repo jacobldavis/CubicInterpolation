@@ -64,29 +64,6 @@ double **read_1dvalues() {
     return values;
 }
 
-double ***read_2dvalues() {
-    // Allocates memory for values based on n_values.
-    double*** values = (double***)malloc(n_values_size * sizeof(double**));
-    for (int i = 0; i < n_values_size; i++) {
-        values[i] = (double**)malloc(n_values[i] * sizeof(double*));
-        for (int j = 0; j < n_values[i]; j++) {
-            values[i][j] = (double*)malloc(n_values[i] * sizeof(double));
-        }
-    }
-
-    // Reads and returns the values from 1dvalues.txt into values.
-    FILE *file = fopen("../2dvalues.txt", "r");
-    for (int i = 0; i < n_values_size; i++) {
-        for (int j = 0; j < n_values[i]; j++) {
-            for (int k = 0; k < n_values[i]; k++) {
-                int x = fscanf(file, "%lf, ", &values[i][j][k]);
-            }
-        }
-    }
-
-    return values;
-}
-
 void test_cubic_xtensor(int i, double* values, FILE* fp) {
     // Initializes time recording variables and cubic_interp
     clock_t start, end;
@@ -159,16 +136,6 @@ void test_all_cubic_eigen(double** values, FILE* fp) {
 
 void free1d(double** values) {
     for (int i = 0; i < n_values_size; i++) {
-        free(values[i]);
-    }
-    free(values);
-}
-
-void free2d(double*** values) {
-    for (int i = 0; i < n_values_size; i++) {
-        for (int j = 0; j < n_values[i]; j++) {
-            free(values[i][j]);
-        }
         free(values[i]);
     }
     free(values);

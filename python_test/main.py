@@ -34,14 +34,6 @@ with open('../1dvalues.txt', 'r') as f:
         float_values = np.array([float(val) for val in str_values])
         onevalues.append(float_values)
 
-# Collects the 2d randomly generated values
-twovalues = []
-with open('../2dvalues.txt', 'r') as f:
-    for line in f:
-        str_values = line.strip().split(', ')
-        float_values = np.array([float(val) for val in str_values])
-        twovalues.append(float_values)
-
 def test_all_cubic_np():
     f = open('np_data.csv', 'w')
     f.write("Data,Iterations,Time\n")
@@ -68,7 +60,7 @@ def test_all_bicubic_np():
     print("Testing np bicubic:")
     # Iterates through the test for each size of data
     for i, n_value in enumerate(n_values):
-        interp = bicubic_interp(twovalues[i], n_value, n_value, -1, -1, 1, 1)
+        interp = bicubic_interp(onevalues[i], int(np.sqrt(n_value)), int(np.sqrt(n_value)), -1, -1, 1, 1)
         # Iterates through the test for each iteration count
         for iterations in iteration_counts:
             random = np.random.uniform(0, 100, iterations)
@@ -133,4 +125,4 @@ def test_all_cubic_cupy():
 test_all_cubic_np()
 test_all_cubic_torch()
 test_all_cubic_cupy()
-#test_all_bicubic_np()
+test_all_bicubic_np()

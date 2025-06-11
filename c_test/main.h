@@ -31,20 +31,10 @@ static const int n_values_size = 5;
  */
 double **read_1dvalues();
 
-/* 
- * Collects arrays of the sizes in n_values from 2dvalues.txt.
- */
-double ***read_2dvalues();
-
 /*
  * Frees the 1d values
  */
 void free1d(double** values);
-
-/*
- * Frees the 2d values
- */
-void free2d(double*** values);
 
 /*
  * Runs the cubic interpolation at a particular value of n.
@@ -59,11 +49,11 @@ void test_all_cubic(double** values, FILE* fp);
 /*
  * Runs the bicubic interpolation at a particular value of n.
  */
-void test_bicubic(int i, double** values, FILE* fp);
+void test_bicubic(int i, double* values, FILE* fp);
 
 /*
  * Runs the bicubic interpolation at every value of n in n_values.
  */
-void test_all_bicubic(double*** values, FILE* fp);
+void test_all_bicubic(double** values, FILE* fp);
 
 #endif 

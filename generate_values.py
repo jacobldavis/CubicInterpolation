@@ -34,14 +34,4 @@ with open('1dvalues.txt', 'w') as f:
         values = np.round(values, 2)
         print(", ".join(map(str, values)), file=f)
 
-with open('2dvalues.txt', 'w') as f:
-    for n in n_values:
-        # generates a randomized array of n floats
-        initial = np.random.randint(0, 100, n*n)
-        offset = np.random.rand(n*n)
-        values = initial * offset
-
-        # prints the array
-        values = np.round(values, 2)
-        print(", ".join(map(str, values)), file=f)
 
