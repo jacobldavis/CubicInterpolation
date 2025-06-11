@@ -22,9 +22,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 #include "cubic_interp.h"
 #include "../main.h"
 void test_all_cubic_cl(double **values, FILE *fp);
+
 #ifdef __cplusplus
 }
 #endif
