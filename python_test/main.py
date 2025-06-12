@@ -23,6 +23,7 @@ import cupy as cp
 import jax.numpy as jnp
 from jax import jit
 from jax import vmap
+import jax
 import torch
 import time
 from cubic_interp import *
@@ -119,8 +120,11 @@ def test_all_cubic_jax():
             random = np.random.uniform(0, 100, iterations)
             random = jnp.array(random)
             interp.batch_eval = jit(vmap(interp.cubic_interp_eval_jax))
+            _ = interp.batch_eval(random)
+            jax.block_until_ready(_)
             start = time.perf_counter()
             result = interp.batch_eval(random)
+            print(result)
             end = time.perf_counter()
             elapsed_time = end - start
             print(f"Time for size {n_value} and iterations {iterations} is {elapsed_time:.4g}")
@@ -128,9 +132,9 @@ def test_all_cubic_jax():
         print()
     f.close()
 
-test_all_cubic_np()
-test_all_cubic_torch()
-test_all_cubic_cupy()
+# test_all_cubic_np()
+# test_all_cubic_torch()
+# test_all_cubic_cupy()
 test_all_cubic_jax()
 
 # def test_all_bicubic_np():
