@@ -17,7 +17,6 @@
  * The purpose of this program is to generate a series of random values
  * for testing cubic interpolation at different array sizes.
  * 
- * Usage: python generate_values.py
 '''
 
 import numpy as np

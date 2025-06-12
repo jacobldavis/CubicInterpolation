@@ -83,7 +83,7 @@ def test_all_cubic_torch():
     f.close()
 
 def test_all_cubic_cupy():
-    f = open('cp_data.csv', 'w')
+    f = open('cupy_data.csv', 'w')
     f.write("Data,Iterations,Time\n")
     print("Testing cupy cubic:")
     # Iterates through the test for each size of data
@@ -128,9 +128,9 @@ def test_all_cubic_jax():
         print()
     f.close()
 
-# test_all_cubic_np()
-# test_all_cubic_torch()
-# test_all_cubic_cupy()
+test_all_cubic_np()
+test_all_cubic_torch()
+test_all_cubic_cupy()
 test_all_cubic_jax()
 
 # def test_all_bicubic_np():
