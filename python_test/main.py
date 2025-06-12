@@ -132,9 +132,9 @@ def test_all_cubic_jax():
         print()
     f.close()
 
-# test_all_cubic_np()
-# test_all_cubic_torch()
-# test_all_cubic_cupy()
+test_all_cubic_np()
+test_all_cubic_torch()
+test_all_cubic_cupy()
 test_all_cubic_jax()
 
 # def test_all_bicubic_np():
