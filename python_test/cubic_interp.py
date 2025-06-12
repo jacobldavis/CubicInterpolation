@@ -20,6 +20,9 @@
 '''
 import numpy as np
 import cupy as cp
+import jax.numpy as jnp
+from jax import jit
+from jax import vmap
 import torch
 
 class cubic_interp:
@@ -76,7 +79,19 @@ class cubic_interp:
         a3 = self.a[ix, 3]
 
         return ((a0 * x + a1) * x + a2) * x + a3
-            
+    
+    def cubic_interp_eval_jax(self, data):
+        x = jnp.clip(data * self.f + self.t0, 0.0, self.length - 1.0)
+        ix = x.astype(int)
+        x -= ix
+        
+        a0 = self.a[ix, 0]
+        a1 = self.a[ix, 1]
+        a2 = self.a[ix, 2]
+        a3 = self.a[ix, 3]
+
+        return ((a0 * x + a1) * x + a2) * x + a3
+
 class bicubic_interp:
     def __init__(self, data, ns, nt, smin, tmin, ds, dt):
         self.fx = np.array([1/ds, 1/dt])

@@ -20,6 +20,9 @@
 '''
 import numpy as np
 import cupy as cp
+import jax.numpy as jnp
+from jax import jit
+from jax import vmap
 import torch
 import time
 from cubic_interp import *
@@ -103,9 +106,32 @@ def test_all_cubic_cupy():
         print()
     f.close()
 
+def test_all_cubic_jax():
+    f = open('jax_data.csv', 'w')
+    f.write("Data,Iterations,Time\n")
+    print("Testing jax cubic:")
+    # Iterates through the test for each size of data
+    for i, n_value in enumerate(n_values):
+        interp = cubic_interp(onevalues[i], n_value, -1, 1)
+        interp.a = jnp.array(interp.a)
+        # Iterates through the test for each iteration count
+        for iterations in iteration_counts:
+            random = np.random.uniform(0, 100, iterations)
+            random = jnp.array(random)
+            interp.batch_eval = jit(vmap(interp.cubic_interp_eval_jax))
+            start = time.perf_counter()
+            result = interp.batch_eval(random)
+            end = time.perf_counter()
+            elapsed_time = end - start
+            print(f"Time for size {n_value} and iterations {iterations} is {elapsed_time:.4g}")
+            f.write(f"{n_value},{iterations},{elapsed_time:.4g}\n")
+        print()
+    f.close()
+
 # test_all_cubic_np()
 # test_all_cubic_torch()
 # test_all_cubic_cupy()
+test_all_cubic_jax()
 
 # def test_all_bicubic_np():
 #     f = open('bi_np_data.csv', 'w')
