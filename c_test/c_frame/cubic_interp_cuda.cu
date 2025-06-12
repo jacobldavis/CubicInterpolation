@@ -18,7 +18,7 @@
  * different frameworks for a cubic interpolation.
  */
 #include <cuda_runtime.h>
-#include "kernel.h"
+#include "cubic_interp_cuda.h"
 
 __global__ void cubic_interp_eval(int c, cubic_interp* dev_interp, double* dev_t) {
     // Sets initial index and other values to compute

@@ -19,7 +19,7 @@
  */
 
 #include "c_frame/cubic_interp.h"
-#include "c_frame/kernel.h"
+#include "c_frame/cubic_interp_cuda.h"
 #include "c_frame/cubic_interp_cl.h"
 #include "main.h"
 #include <gsl/gsl_test.h>

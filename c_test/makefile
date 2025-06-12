@@ -5,7 +5,7 @@ NVCCFLAGS = -O3 -Ic_frame
 LDFLAGS = -lgsl -lm -lcudart -lOpenCL
 
 C_SRC = main.c $(wildcard c_frame/*.c)
-CUDA_SRC = c_frame/kernel.cu
+CUDA_SRC = c_frame/cubic_interp_cuda.cu
 
 BUILD_DIR = build
 C_OBJ = $(patsubst %.c,$(BUILD_DIR)/%.o,$(C_SRC))
