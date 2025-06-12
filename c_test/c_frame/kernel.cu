@@ -71,17 +71,16 @@ extern void test_all_cubic_cuda(double **values, FILE *fp)
         cudaMemcpy(dev_interp, &h_interp_dev, sizeof(cubic_interp), cudaMemcpyHostToDevice);
 
         // Iterates through the interpolation with varying evaluation counts
-        int c = 10000;
-        for (int m = 1; m < 5; m++) {
+        for (int m = 0; m < iteration_values_size; m++) {
             // Precomputes random values and other relevant vars for CUDA
-            double* t = (double*)malloc(c * sizeof(double));
-            for (int k = 0; k < c; k++) {
+            double* t = (double*)malloc(iteration_values[m] * sizeof(double));
+            for (int k = 0; k < iteration_values[m]; k++) {
                 t[k] = rand() * 100;
             }
             cudaDeviceProp prop;
             cudaGetDeviceProperties(&prop, 0);
             int threadsPerBlock = min(prop.maxThreadsPerBlock, 128);
-            int blocksPerGrid = int((c+threadsPerBlock-1)/threadsPerBlock);
+            int blocksPerGrid = int((iteration_values[m]+threadsPerBlock-1)/threadsPerBlock);
             cudaEvent_t start, stop;
             cudaEventCreate(&start);
             cudaEventCreate(&stop);
@@ -89,26 +88,24 @@ extern void test_all_cubic_cuda(double **values, FILE *fp)
 
             // Copies t to the device
             double* dev_t;
-            cudaMalloc( (void**)&dev_t, c * sizeof(double));
-            cudaMemcpy(dev_t, t, c * sizeof(double), cudaMemcpyHostToDevice);
+            cudaMalloc( (void**)&dev_t, iteration_values[m] * sizeof(double));
+            cudaMemcpy(dev_t, t, iteration_values[m] * sizeof(double), cudaMemcpyHostToDevice);
 
             // Performs benchmark and records time
             cudaEventRecord(start, 0);
-            cubic_interp_eval<<<blocksPerGrid,threadsPerBlock>>>(c, dev_interp, dev_t);
+            cubic_interp_eval<<<blocksPerGrid,threadsPerBlock>>>(iteration_values[m], dev_interp, dev_t);
             cudaEventRecord(stop, 0);
             cudaEventSynchronize(stop);
             cudaEventElapsedTime(&elapsedTime, start, stop);
-            cudaMemcpy(t, dev_t, c*sizeof(double), cudaMemcpyDeviceToHost); // include or exclude from timing?
-            printf("Time for size %d and iterations %d is %lf\n", n_values[i], c, elapsedTime / 1000.0);
-            fprintf(fp, "%d,%d,%lf\n", n_values[i], c, elapsedTime / 1000.0);
+            cudaMemcpy(t, dev_t, iteration_values[m]*sizeof(double), cudaMemcpyDeviceToHost); // include or exclude from timing?
+            printf("Time for size %d and iterations %d is %lf\n", n_values[i], iteration_values[m], elapsedTime / 1000.0);
+            fprintf(fp, "%d,%d,%lf\n", n_values[i], iteration_values[m], elapsedTime / 1000.0);
 
             // Frees t, dev_t, and events
             cudaFree(dev_t);
             cudaEventDestroy(start);
             cudaEventDestroy(stop);
             free(t);
-
-            c *= 10;
         }
         // Frees interp related variables
         cudaFree(dev_interp);

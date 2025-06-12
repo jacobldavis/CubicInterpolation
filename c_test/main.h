@@ -25,6 +25,8 @@
 
 static const int n_values[5] = {4, 9, 100, 400, 1024};
 static const int n_values_size = 5;
+static const int iteration_values[4] = {10000, 100000, 1000000, 10000000};
+static const int iteration_values_size = 4;
 
 /* 
  * Collects arrays of the sizes in n_values from 1dvalues.txt.

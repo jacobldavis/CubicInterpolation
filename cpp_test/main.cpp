@@ -71,20 +71,17 @@ void test_cubic_xtensor(int i, double* values, FILE* fp) {
     cubic_interp *interp = cubic_interp_init_xtensor(values, n_values[i], -1, 1);
 
     // Iterates through the interpolation with varying xtensor sizes
-    int c = 10000;
-    for (int m = 1; m < 5; m++) {
+    for (int m = 0; m < iteration_values_size; m++) {
         // Precomputes random values
-        xt::xtensor<double, 1> random = xt::eval(xt::random::rand<double>({c}, 0, 100));
+        xt::xtensor<double, 1> random = xt::eval(xt::random::rand<double>({iteration_values[m]}, 0, 100));
 
         // Performs benchmark
         start = clock();
         volatile const xt::xtensor<double, 1> result = cubic_interp_eval_xtensor(interp, random);
         end = clock();
         cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-        printf("Time for size %d and iterations %d is %lf\n", n_values[i], c, cpu_time_used);
-        fprintf(fp, "%d,%d,%lf\n", n_values[i], c, cpu_time_used);
-
-        c = c * 10;
+        printf("Time for size %d and iterations %d is %lf\n", n_values[i], iteration_values[m], cpu_time_used);
+        fprintf(fp, "%d,%d,%lf\n", n_values[i], iteration_values[m], cpu_time_used);
     }
     printf("\n");
     cubic_interp_free_xtensor(interp);
@@ -92,7 +89,7 @@ void test_cubic_xtensor(int i, double* values, FILE* fp) {
 
 void test_all_cubic_xtensor(double** values, FILE* fp) {
     // Runs the test for all values of n
-    printf("\nTesting cubic:\n");
+    printf("\nTesting xtensor cubic:\n");
     fprintf(fp, "Data,Iterations,Time\n");
     for (int i = 0; i < n_values_size; i++) {
         test_cubic_xtensor(i, values[i], fp);
@@ -106,20 +103,17 @@ void test_cubic_eigen(int i, double* values, FILE* fp) {
     cubic_interp *interp = cubic_interp_init_eigen(values, n_values[i], -1, 1);
 
     // Iterates through the interpolation with varying xtensor sizes
-    int c = 10000;
-    for (int m = 1; m < 5; m++) {
+    for (int m = 0; m < iteration_values_size; m++) {
         // Precomputes random values
-        Eigen::VectorXd random = (Eigen::VectorXd::Random(c) + Eigen::VectorXd::Ones(c)) * 50;
+        Eigen::VectorXd random = (Eigen::VectorXd::Random(iteration_values[m]) + Eigen::VectorXd::Ones(iteration_values[m])) * 50;
 
         // Performs benchmark
         start = clock();
         volatile const Eigen::VectorXd result = cubic_interp_eval_eigen(interp, random);
         end = clock();
         cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-        printf("Time for size %d and iterations %d is %lf\n", n_values[i], c, cpu_time_used);
-        fprintf(fp, "%d,%d,%lf\n", n_values[i], c, cpu_time_used);
-
-        c *= 10;
+        printf("Time for size %d and iterations %d is %lf\n", n_values[i], iteration_values[m], cpu_time_used);
+        fprintf(fp, "%d,%d,%lf\n", n_values[i], iteration_values[m], cpu_time_used);
     }
     printf("\n");
     cubic_interp_free_xtensor(interp);
@@ -127,7 +121,7 @@ void test_cubic_eigen(int i, double* values, FILE* fp) {
 
 void test_all_cubic_eigen(double** values, FILE* fp) {
     // Runs the test for all values of n
-    printf("\nTesting cubic:\n");
+    printf("\nTesting eigen cubic:\n");
     fprintf(fp, "Data,Iterations,Time\n");
     for (int i = 0; i < n_values_size; i++) {
         test_cubic_eigen(i, values[i], fp);

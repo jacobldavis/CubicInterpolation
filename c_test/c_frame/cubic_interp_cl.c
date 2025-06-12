@@ -70,11 +70,10 @@ void test_all_cubic_cl(double **values, FILE *fp)
         clEnqueueWriteBuffer(queue, dev_a, CL_TRUE, 0, interp->length * sizeof(double[4]), interp->a, 0, NULL, NULL);
 
         // Iterates through evaluation counts
-        int c = 10000;
-        for (int m = 1; m < 5; m++) {
+        for (int m = 0; m < iteration_values_size; m++) {
             // Precomputes random values
-            double* t = (double*)malloc(c * sizeof(double));
-            for (int k = 0; k < c; k++) {
+            double* t = (double*)malloc(iteration_values[m] * sizeof(double));
+            for (int k = 0; k < iteration_values[m]; k++) {
                 t[k] = rand() * 100;
             }
 
@@ -82,15 +81,15 @@ void test_all_cubic_cl(double **values, FILE *fp)
             size_t maxWorkGroupSize;
             clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &maxWorkGroupSize, NULL);
             size_t threadsPerBlock = maxWorkGroupSize < 128 ? maxWorkGroupSize : 128;
-            size_t blocksPerGrid = (c + threadsPerBlock - 1) / threadsPerBlock;
+            size_t blocksPerGrid = (iteration_values[m] + threadsPerBlock - 1) / threadsPerBlock;
             size_t globalSize = blocksPerGrid * threadsPerBlock;
 
             // Creates device buffer for t
-            cl_mem dev_t = clCreateBuffer(context, CL_MEM_READ_WRITE, c * sizeof(double), NULL, &err);
-            clEnqueueWriteBuffer(queue, dev_t, CL_TRUE, 0, c * sizeof(double), t, 0, NULL, NULL);
+            cl_mem dev_t = clCreateBuffer(context, CL_MEM_READ_WRITE, iteration_values[m] * sizeof(double), NULL, &err);
+            clEnqueueWriteBuffer(queue, dev_t, CL_TRUE, 0, iteration_values[m] * sizeof(double), t, 0, NULL, NULL);
 
             // Sets kernel arguments
-            clSetKernelArg(kernel, 0, sizeof(int), &c);
+            clSetKernelArg(kernel, 0, sizeof(int), &iteration_values[m]);
             clSetKernelArg(kernel, 1, sizeof(int), &interp->length);
             clSetKernelArg(kernel, 2, sizeof(double), &interp->f);
             clSetKernelArg(kernel, 3, sizeof(double), &interp->t0);
@@ -107,16 +106,14 @@ void test_all_cubic_cl(double **values, FILE *fp)
             clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, NULL);
             clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, NULL);
             double elapsedTime = (end - start) / 1e6; // time is returned in nanoseconds => milliseconds
-            clEnqueueReadBuffer(queue, dev_t, CL_TRUE, 0, c * sizeof(double), t, 0, NULL, NULL);
-            printf("Time for size %d and iterations %d is %lf\n", n_values[i], c, elapsedTime / 1000.0);
-            fprintf(fp, "%d,%d,%lf\n", n_values[i], c, elapsedTime / 1000.0);
+            clEnqueueReadBuffer(queue, dev_t, CL_TRUE, 0, iteration_values[m] * sizeof(double), t, 0, NULL, NULL);
+            printf("Time for size %d and iterations %d is %lf\n", n_values[i], iteration_values[m], elapsedTime / 1000.0);
+            fprintf(fp, "%d,%d,%lf\n", n_values[i], iteration_values[m], elapsedTime / 1000.0);
 
             // Frees dev_t/t and events
             clReleaseMemObject(dev_t);
             clReleaseEvent(event);
             free(t);
-
-            c *= 10;
         }
 
         // Frees interp-related resources

@@ -77,25 +77,24 @@ void test_cubic(int i, double* values, FILE* fp) {
     cubic_interp *interp = cubic_interp_init(values, n_values[i], -1, 1);
 
     // Iterates through the interpolation with varying loop operation counts
-    int c = 10000;
-    for (int m = 1; m < 5; m++) {
+    for (int m = 0; m < iteration_values_size; m++) {
         // Precomputes random values
-        double* random = (double*)malloc(c * sizeof(double));
-        for (int k = 0; k < c; k++) {
+        double* random = (double*)malloc(iteration_values[m] * sizeof(double));
+        for (int k = 0; k < iteration_values[m]; k++) {
             random[k] = rand() * 100;
         }
 
         // Performs benchmark
+        int a = iteration_values[m];
         start = clock();
-        for (int t = 0; t <= c; t += 1) {
+        for (int t = 0; t <= a; t += 1) {
             volatile const double result = cubic_interp_eval(interp, random[t]);
         }
         end = clock();
         cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-        printf("Time for size %d and iterations %d is %lf\n", n_values[i], c, cpu_time_used);
-        fprintf(fp, "%d,%d,%lf\n", n_values[i], c, cpu_time_used);
+        printf("Time for size %d and iterations %d is %lf\n", n_values[i], iteration_values[m], cpu_time_used);
+        fprintf(fp, "%d,%d,%lf\n", n_values[i], iteration_values[m], cpu_time_used);
 
-        c *= 10;
         free(random);
     }
     printf("\n");
@@ -119,18 +118,17 @@ void test_bicubic(int i, double* values, FILE* fp) {
     bicubic_interp *interp = bicubic_interp_init(values, n_value, n_value, -1, -1, 1, 1);
 
     // Iterates through the interpolation with varying loop operation counts
-    int c = 10000;
-    for (int m = 1; m < 5; m++) {
+    for (int m = 0; m < iteration_values_size; m++) {
         // Precomputes random values
-        double* randomu = (double*)malloc(c * sizeof(double));
-        double* randomv = (double*)malloc(c * sizeof(double));
-        for (int k = 0; k < c; k++) {
+        double* randomu = (double*)malloc(iteration_values[m] * sizeof(double));
+        double* randomv = (double*)malloc(iteration_values[m] * sizeof(double));
+        for (int k = 0; k < iteration_values[m]; k++) {
             randomu[k] = rand() * 100;
             randomv[k] = rand() * 100;
         }
         
         // Performs benchmark
-        int iter = sqrt(c);
+        int iter = sqrt(iteration_values[m]);
         start = clock();
         for (int s = 0; s <= iter; s += 1) {
             for (int t = 0; t <= iter; t += 1) {
@@ -139,10 +137,9 @@ void test_bicubic(int i, double* values, FILE* fp) {
         }
         end = clock();
         cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-        printf("Time for size %d and iterations %d is %lf\n", n_values[i], c, cpu_time_used);
-        fprintf(fp, "%d,%d,%lf\n", n_values[i], c, cpu_time_used);
+        printf("Time for size %d and iterations %d is %lf\n", n_values[i], iteration_values[m], cpu_time_used);
+        fprintf(fp, "%d,%d,%lf\n", n_values[i], iteration_values[m], cpu_time_used);
 
-        c *= 10;
         free(randomu);
         free(randomv);
     }
