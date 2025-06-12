@@ -38,7 +38,7 @@ with open('../1dvalues.txt', 'r') as f:
         onevalues.append(float_values)
 
 def test_all_cubic_np():
-    f = open('np_data.csv', 'w')
+    f = open('numpy_data.csv', 'w')
     f.write("Data,Iterations,Time\n")
     print("Testing np cubic:")
     # Iterates through the test for each size of data
