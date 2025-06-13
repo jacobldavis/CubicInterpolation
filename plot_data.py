@@ -33,11 +33,13 @@ plt.figure(figsize=(100,100))
 for file in csv_files:
     df = pd.read_csv(file)
     df = df[df['Data'] == 400]
+    df = df[df['Iterations'] != 10000]
     plt.plot(df['Iterations'], df['Time'], label=file.split('/')[-1])
-
+plt.xscale('log')
+plt.yscale('log')
 plt.xlabel('Iterations')
 plt.ylabel('Time')
-plt.title('Loop Iterations vs. Time (Data size == 400)')
+plt.title('Loop Iterations vs. Time (|Data| == 400)')
 plt.legend()
 plt.grid(True)
 plt.show()
