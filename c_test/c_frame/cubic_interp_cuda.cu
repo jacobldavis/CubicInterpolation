@@ -24,7 +24,6 @@ __global__ void cubic_interp_eval(int c, cubic_interp* dev_interp, double* dev_t
     // Sets initial index and other values to compute
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;
-    int len = dev_interp->length;
     double f = dev_interp->f;
     double t0 = dev_interp->t0;
     double xmin = 0.0, xmax = dev_interp->length - 1.0;
@@ -35,10 +34,10 @@ __global__ void cubic_interp_eval(int c, cubic_interp* dev_interp, double* dev_t
         x = f * x + t0;
         x = fmin(fmax(x, xmin), xmax);
 
-        int ix = floor(x);
+        int ix = (int)floor(x);
         x -= ix;
 
-        const double *a = dev_interp->a[ix];
+        const double* a = (const double*)&(dev_interp->a[ix][0]);
         dev_t[idx] = (x * (x * (x * a[0] + a[1]) + a[2]) + a[3]);
 
         idx += stride;
