@@ -34,12 +34,12 @@
 int main(int argc, char **argv) {
     // Reads the files for input values and creates a csv
     double **onevalues = read_1dvalues();
-    FILE* cfp = fopen("c_data.csv", "w");
-    FILE* bicfp = fopen("bi_c_data.csv", "w");
-    FILE* cudafp = fopen("cuda_data.csv", "w");
-    FILE* clfp = fopen("opencl_data.csv", "w");
-    FILE* omp = fopen("omp_data.csv", "w");
-    FILE* acc = fopen("openacc_data.csv", "w");
+    FILE* cfp = fopen("../results/c_data.csv", "w");
+    FILE* bicfp = fopen("../results/bi_c_data.csv", "w");
+    FILE* cudafp = fopen("../results/cuda_data.csv", "w");
+    FILE* clfp = fopen("../results/opencl_data.csv", "w");
+    FILE* omp = fopen("../results/omp_data.csv", "w");
+    FILE* acc = fopen("../results/openacc_data.csv", "w");
 
     // Executes the tests for onevalues and two values
     srand(time(NULL));

@@ -40,7 +40,7 @@ with open('../1dvalues.txt', 'r') as f:
         onevalues.append(float_values)
 
 def test_all_cubic_np():
-    f = open('numpy_data.csv', 'w')
+    f = open('../results/numpy_data.csv', 'w')
     f.write("Data,Iterations,Time\n")
     print("Testing np cubic:")
     # Iterates through the test for each size of data
@@ -60,7 +60,7 @@ def test_all_cubic_np():
     f.close()
 
 def test_all_cubic_torch():
-    f = open('torch_data.csv', 'w')
+    f = open('../results/torch_data.csv', 'w')
     f.write("Data,Iterations,Time\n")
     print("Testing torch cubic:")
     # Iterates through the test for each size of data
@@ -83,7 +83,7 @@ def test_all_cubic_torch():
     f.close()
 
 def test_all_cubic_torch_cpu():
-    f = open('cpu_torch_data.csv', 'w')
+    f = open('../results/cpu_torch_data.csv', 'w')
     f.write("Data,Iterations,Time\n")
     print("Testing torch cpu cubic:")
     # Iterates through the test for each size of data
@@ -105,7 +105,7 @@ def test_all_cubic_torch_cpu():
     f.close()
 
 def test_all_cubic_cupy():
-    f = open('cupy_data.csv', 'w')
+    f = open('../results/cupy_data.csv', 'w')
     f.write("Data,Iterations,Time\n")
     print("Testing cupy cubic:")
     # Iterates through the test for each size of data
@@ -127,7 +127,7 @@ def test_all_cubic_cupy():
     f.close()
 
 def test_all_cubic_jax():
-    f = open('jax_data.csv', 'w')
+    f = open('../results/jax_data.csv', 'w')
     f.write("Data,Iterations,Time\n")
     print("Testing jax cubic:")
     # Iterates through the test for each size of data
@@ -153,7 +153,7 @@ def test_all_cubic_jax():
     f.close()
 
 def test_all_cubic_jax_cpu():
-    f = open('cpu_jax_data.csv', 'w')
+    f = open('../results/cpu_jax_data.csv', 'w')
     f.write("Data,Iterations,Time\n")
     print("Testing jax cpu cubic:")
     # Iterates through the test for each size of data
@@ -223,7 +223,7 @@ __kernel void cubic_interp_eval(const uint c, const uint length, const double f,
 """
 
 def test_all_cubic_opencl():
-    f = open('pyopencl_data.csv', 'w')
+    f = open('../results/pyopencl_data.csv', 'w')
     f.write("Data,Iterations,Time\n")
     print("Testing pyopencl cubic:")
 
@@ -258,10 +258,10 @@ def test_all_cubic_opencl():
         print()
     f.close()
 
-# test_all_cubic_np()
-# test_all_cubic_torch()
-# test_all_cubic_torch_cpu()
-# test_all_cubic_cupy()
-# test_all_cubic_jax()
-# test_all_cubic_jax_cpu()
+test_all_cubic_np()
+test_all_cubic_torch()
+test_all_cubic_torch_cpu()
+test_all_cubic_cupy()
+test_all_cubic_jax()
+test_all_cubic_jax_cpu()
 test_all_cubic_opencl()

@@ -30,8 +30,8 @@
 int main(int argc, char **argv) {
     // Reads the files for input values
     double **onevalues = read_1dvalues();
-    FILE *xfp = fopen("xtensor_data.csv", "w");
-    FILE *efp = fopen("eigen_data.csv", "w");
+    FILE *xfp = fopen("../results/xtensor_data.csv", "w");
+    FILE *efp = fopen("../results/eigen_data.csv", "w");
 
     // Executes the tests for onevalues
     srand(time(NULL));

@@ -22,11 +22,8 @@ import matplotlib.pyplot as plt
 import glob
 
 # Collects the cubic interpolation files
-c_csv_files = glob.glob('c_test/*.csv')
-cpp_csv_files = glob.glob('cpp_test/*.csv')
-python_csv_files = glob.glob('python_test/*.csv')
-csv_files = c_csv_files + cpp_csv_files + python_csv_files
-csv_files.remove('c_test/bi_c_data.csv')
+csv_files = glob.glob('results/*.csv')
+csv_files.remove('results/bi_c_data.csv')
 
 # Plots the data
 plt.figure(figsize=(100,100))
