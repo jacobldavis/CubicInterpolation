@@ -5,4 +5,4 @@ Welcome! The purpose of this repository is to test porting various parallel, GPU
 We've tested the following frameworks thus far:
 - c_test: pure C, OpenMP, OpenACC, OpenCL, and CUDA
 - cpp_test: xtensor and Eigen
-- python_test: NumPy, CuPy, JAX, and PyTorch
+- python_test: NumPy, CuPy, JAX, pyopencl, and PyTorch
