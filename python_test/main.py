@@ -137,10 +137,10 @@ def test_all_cubic_jax():
         for iterations in iteration_counts:
             random = np.random.uniform(0, 100, iterations)
             random = jnp.array(random)
+            start = time.perf_counter()
             interp.batch_eval = jit(vmap(interp.cubic_interp_eval_jax))
             _ = interp.batch_eval(random)
             _.block_until_ready()
-            start = time.perf_counter()
             result = interp.batch_eval(random)
             result.block_until_ready()
             end = time.perf_counter()
@@ -163,10 +163,10 @@ def test_all_cubic_jax_cpu():
             for iterations in iteration_counts:
                 random = np.random.uniform(0, 100, iterations)
                 random = jnp.array(random)
+                start = time.perf_counter()
                 interp.batch_eval = jit(vmap(interp.cubic_interp_eval_jax))
                 _ = interp.batch_eval(random)
                 _.block_until_ready()
-                start = time.perf_counter()
                 result = interp.batch_eval(random)
                 result.block_until_ready()
                 end = time.perf_counter()
