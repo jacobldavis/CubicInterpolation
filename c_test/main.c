@@ -22,36 +22,42 @@
 #include "c_frame/cubic_interp_cuda.h"
 #include "c_frame/cubic_interp_cl.h"
 #include "main.h"
+#include "c_frame/vmath.h"
 #include <gsl/gsl_test.h>
 #include <gsl/gsl_math.h>
 #include <stdlib.h>
 #include <time.h>
 #include <omp.h>
 
+#define VCUBIC(a, t) (t * (t * (t * a[0] + a[1]) + a[2]) + a[3])
+
 int main(int argc, char **argv) {
     // Reads the files for input values and creates a csv
     double **onevalues = read_1dvalues();
-    FILE* cfp = fopen("c_data.csv", "w");
-    FILE* bicfp = fopen("bi_c_data.csv", "w");
-    FILE* cudafp = fopen("cuda_data.csv", "w");
-    FILE* clfp = fopen("opencl_data.csv", "w");
+    // FILE* cfp = fopen("c_data.csv", "w");
+    // FILE* bicfp = fopen("bi_c_data.csv", "w");
+    // FILE* cudafp = fopen("cuda_data.csv", "w");
+    // FILE* clfp = fopen("opencl_data.csv", "w");
     FILE* omp = fopen("omp_data.csv", "w");
+    FILE* acc = fopen("openacc_data.csv", "w");
 
     // Executes the tests for onevalues and two values
     srand(time(NULL));
-    test_all_cubic(onevalues, cfp);
-    test_all_bicubic(onevalues, bicfp);
-    test_all_cubic_cuda(onevalues, cudafp);
-    test_all_cubic_cl(onevalues, clfp);
+    // test_all_cubic(onevalues, cfp);
+    // test_all_bicubic(onevalues, bicfp);
+    // test_all_cubic_cuda(onevalues, cudafp);
+    // test_all_cubic_cl(onevalues, clfp);
     test_all_cubic_openmp(onevalues, omp);
+    test_all_cubic_openacc(onevalues, acc);
 
     // Frees onevalues and twovalues and closes files
     free1d(onevalues);
-    fclose(cfp);
-    fclose(bicfp);
-    fclose(cudafp);
-    fclose(clfp);
+    // fclose(cfp);
+    // fclose(bicfp);
+    // fclose(cudafp);
+    // fclose(clfp);
     fclose(omp);
+    fclose(acc);
 
     return 0;
 }
@@ -131,29 +137,29 @@ void test_cubic_openmp(int i, double* values, FILE* fp) {
         int t0 = interp->t0;
         int length = interp->length;
         double (*a)[4] = interp->a;
+        int n = iteration_values[m];
+        double* coeffs;
+        double xmin = 0.0, xmax = interp->length - 1.0;
 
         // Performs benchmark
-        int n = iteration_values[m];
-        double* results = (double*)malloc(n * sizeof(double));
         double start = omp_get_wtime();
         #pragma omp target teams distribute parallel for \
-            map(to: random[0:n], a[0:length]) map(from: results[0:n])
+            map(to: random[0:n], a[0:length])
         for (int t = 0; t < n; t++) {
             double x = random[t] * f + t0;
-            if (x < 0.0) x = 0.0;
-            if (x > length - 1.0) x = length - 1.0;            
-            int ix = (int)x;
+            x = VCLIP(x, xmin, xmax);            
+            int ix = VFLOOR(x);
             x -= ix;
-            double* coeffs = a[ix];
-            results[t] = ((coeffs[0] * x + coeffs[1]) * x + coeffs[2]) * x + coeffs[3];
+            coeffs = a[ix];
+            volatile double result = VCUBIC(coeffs, x);
         }
+        #pragma omp barrier
         double end = omp_get_wtime();
         double elapsed_time = end - start;
         printf("Time for size %d and iterations %d is %lf\n", n_values[i], iteration_values[m], elapsed_time);
         fprintf(fp, "%d,%d,%lf\n", n_values[i], iteration_values[m], elapsed_time);
 
         free(random);
-        free(results);
     }
     printf("\n");
     cubic_interp_free(interp);
@@ -162,6 +168,59 @@ void test_cubic_openmp(int i, double* values, FILE* fp) {
 void test_all_cubic_openmp(double** values, FILE* fp) {
     // Runs the test for all values of n
     printf("\nTesting openmp cubic:\n");
+    fprintf(fp, "Data,Iterations,Time\n");
+    for (int i = 0; i < n_values_size; i++) {
+        test_cubic_openmp(i, values[i], fp);
+    }
+}
+
+void test_cubic_openacc(int i, double* values, FILE* fp) {
+    // Initializes cubic_interp
+    cubic_interp *interp = cubic_interp_init(values, n_values[i], -1, 1);
+
+    // Iterates through the interpolation with varying loop operation counts
+    for (int m = 0; m < iteration_values_size; m++) {
+        // Precomputes random values
+        double* random = (double*)malloc(iteration_values[m] * sizeof(double));
+        for (int k = 0; k < iteration_values[m]; k++) {
+            random[k] = rand() * 100;
+        }
+
+        // Sets necessary values
+        int f = interp->f;
+        int t0 = interp->t0;
+        int length = interp->length;
+        double (*a)[4] = interp->a;
+        int n = iteration_values[m];
+        double* coeffs;
+        double xmin = 0.0, xmax = interp->length - 1.0;
+
+        // Performs benchmark
+        double start = omp_get_wtime();
+        #pragma acc parallel loop copyin(random[0:n], a[0:length])
+        for (int t = 0; t < n; t++) {
+            double x = random[t] * f + t0;
+            x = VCLIP(x, xmin, xmax);            
+            int ix = VFLOOR(x);
+            x -= ix;
+            coeffs = a[ix];
+            volatile double result = VCUBIC(coeffs, x);
+        }
+        acc_wait_all();
+        double end = omp_get_wtime();
+        double elapsed_time = end - start;
+        printf("Time for size %d and iterations %d is %lf\n", n_values[i], iteration_values[m], elapsed_time);
+        fprintf(fp, "%d,%d,%lf\n", n_values[i], iteration_values[m], elapsed_time);
+
+        free(random);
+    }
+    printf("\n");
+    cubic_interp_free(interp);
+}
+
+void test_all_cubic_openacc(double** values, FILE* fp) {
+    // Runs the test for all values of n
+    printf("\nTesting openacc cubic:\n");
     fprintf(fp, "Data,Iterations,Time\n");
     for (int i = 0; i < n_values_size; i++) {
         test_cubic_openmp(i, values[i], fp);

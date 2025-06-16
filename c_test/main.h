@@ -56,6 +56,16 @@ void test_cubic_openmp(int i, double* values, FILE* fp);
 /*
  * Runs the cubic interpolation at every value of n in n_values.
  */
+void test_all_cubic_openacc(double** values, FILE* fp);
+
+/*
+ * Runs the cubic interpolation at a particular value of n.
+ */
+void test_cubic_openacc(int i, double* values, FILE* fp);
+
+/*
+ * Runs the cubic interpolation at every value of n in n_values.
+ */
 void test_all_cubic_openmp(double** values, FILE* fp);
 
 /*

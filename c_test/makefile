@@ -1,6 +1,6 @@
 CC = gcc
 NVCC = nvcc
-CFLAGS = -O3 -march=native -Ic_frame -fopenmp
+CFLAGS = -O3 -march=native -Ic_frame -fopenmp -fopenacc
 NVCCFLAGS = -O3 -Ic_frame
 LDFLAGS = -lgsl -lm -lcudart -lOpenCL
 
