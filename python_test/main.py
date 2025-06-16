@@ -71,13 +71,11 @@ def test_all_cubic_torch():
         for iterations in iteration_counts:
             random = np.random.uniform(0, 100, iterations)
             random = torch.from_numpy(random).to(device)
-            start_event = torch.cuda.Event(enable_timing=True)
-            end_event = torch.cuda.Event(enable_timing=True)
-            start_event.record()
+            start = time.perf_counter()
             result = interp.cubic_interp_eval_torch(device, random)
-            end_event.record()
-            end_event.synchronize()
-            elapsed_time = start_event.elapsed_time(end_event) / 1000.0
+            torch.cuda.synchronize()
+            end = time.perf_counter()
+            elapsed_time = end - start
             print(f"Time for size {n_value} and iterations {iterations} is {elapsed_time:.4g}")
             f.write(f"{n_value},{iterations},{elapsed_time:.4g}\n")
         print()
@@ -86,7 +84,7 @@ def test_all_cubic_torch():
 def test_all_cubic_torch_cpu():
     f = open('cpu_torch_data.csv', 'w')
     f.write("Data,Iterations,Time\n")
-    print("Testing torch cubic:")
+    print("Testing torch cpu cubic:")
     # Iterates through the test for each size of data
     device = torch.device("cpu")
     for i, n_value in enumerate(n_values):
@@ -96,13 +94,10 @@ def test_all_cubic_torch_cpu():
         for iterations in iteration_counts:
             random = np.random.uniform(0, 100, iterations)
             random = torch.from_numpy(random).to(device)
-            start_event = torch.cuda.Event(enable_timing=True)
-            end_event = torch.cuda.Event(enable_timing=True)
-            start_event.record()
+            start = time.perf_counter()
             result = interp.cubic_interp_eval_torch(device, random)
-            end_event.record()
-            end_event.synchronize()
-            elapsed_time = start_event.elapsed_time(end_event) / 1000.0
+            end = time.perf_counter()
+            elapsed_time = end - start
             print(f"Time for size {n_value} and iterations {iterations} is {elapsed_time:.4g}")
             f.write(f"{n_value},{iterations},{elapsed_time:.4g}\n")
         print()
@@ -120,13 +115,11 @@ def test_all_cubic_cupy():
         for iterations in iteration_counts:
             random = np.random.uniform(0, 100, iterations)
             random = cp.asarray(random)
-            start_gpu = cp.cuda.Event()
-            end_gpu = cp.cuda.Event()
-            start_gpu.record()
+            start = time.perf_counter()
             result = interp.cubic_interp_eval_cp(random)
-            end_gpu.record()
-            end_gpu.synchronize()
-            elapsed_time = cp.cuda.get_elapsed_time(start_gpu, end_gpu) / 1000.0
+            cp.cuda.Device().synchronize()
+            end = time.perf_counter()
+            elapsed_time = end - start
             print(f"Time for size {n_value} and iterations {iterations} is {elapsed_time:.4g}")
             f.write(f"{n_value},{iterations},{elapsed_time:.4g}\n")
         print()
@@ -146,7 +139,7 @@ def test_all_cubic_jax():
             random = jnp.array(random)
             interp.batch_eval = jit(vmap(interp.cubic_interp_eval_jax))
             _ = interp.batch_eval(random)
-            jax.block_until_ready(_)
+            _.block_until_ready()
             start = time.perf_counter()
             result = interp.batch_eval(random)
             result.block_until_ready()
@@ -172,7 +165,7 @@ def test_all_cubic_jax_cpu():
                 random = jnp.array(random)
                 interp.batch_eval = jit(vmap(interp.cubic_interp_eval_jax))
                 _ = interp.batch_eval(random)
-                jax.block_until_ready(_)
+                _.block_until_ready()
                 start = time.perf_counter()
                 result = interp.batch_eval(random)
                 result.block_until_ready()
@@ -182,6 +175,31 @@ def test_all_cubic_jax_cpu():
                 f.write(f"{n_value},{iterations},{elapsed_time:.4g}\n")
         print()
     f.close()
+
+# def test_all_cubic_jax():
+#     f = open('jax_data.csv', 'w')
+#     f.write("Data,Iterations,Time\n")
+#     print("Testing jax cubic:")
+#     # Iterates through the test for each size of data
+#     for i, n_value in enumerate(n_values):
+#         interp = cubic_interp(onevalues[i], n_value, -1, 1)
+#         interp.a = jnp.array(interp.a)
+#         # Iterates through the test for each iteration count
+#         for iterations in iteration_counts:
+#             random = np.random.uniform(0, 100, iterations)
+#             random = jnp.array(random)
+#             interp.batch_eval = jit(vmap(interp.cubic_interp_eval_jax))
+#             _ = interp.batch_eval(random)
+#             _.block_until_ready()
+#             start = time.perf_counter()
+#             result = interp.batch_eval(random)
+#             result.block_until_ready()
+#             end = time.perf_counter()
+#             elapsed_time = end - start
+#             print(f"Time for size {n_value} and iterations {iterations} is {elapsed_time:.4g}")
+#             f.write(f"{n_value},{iterations},{elapsed_time:.4g}\n")
+#         print()
+#     f.close()
 
 test_all_cubic_np()
 test_all_cubic_torch()
