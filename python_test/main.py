@@ -228,7 +228,7 @@ def test_all_cubic_opencl():
     print("Testing pyopencl cubic:")
 
     # Initializes OpenCL and builds program
-    context = cl.create_some_context()
+    context = cl.create_some_context(0)
     queue = cl.CommandQueue(context, properties=cl.command_queue_properties.PROFILING_ENABLE)
     program = cl.Program(context, kernelsource).build()
     cubic = program.cubic_interp_eval
@@ -258,10 +258,10 @@ def test_all_cubic_opencl():
         print()
     f.close()
 
-test_all_cubic_np()
-test_all_cubic_torch()
-test_all_cubic_torch_cpu()
-test_all_cubic_cupy()
-test_all_cubic_jax()
-test_all_cubic_jax_cpu()
+# test_all_cubic_np()
+# test_all_cubic_torch()
+# test_all_cubic_torch_cpu()
+# test_all_cubic_cupy()
+# test_all_cubic_jax()
+# test_all_cubic_jax_cpu()
 test_all_cubic_opencl()
