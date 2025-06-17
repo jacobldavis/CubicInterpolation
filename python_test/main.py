@@ -138,8 +138,10 @@ def test_all_cubic_jax():
         # Iterates through the test for each iteration count
         with jax.default_device(jax.devices('gpu')[0]):
             for iterations in iteration_counts:
-                random = np.random.uniform(0, 100, iterations)
-                random = jnp.array(random)
+                random = jnp.array(np.random.uniform(0, 100, iterations))
+                # for the precompilation step, the array passed in must be the 
+                # same shape as ones passed in later on for the performance bump
+                # for the purposes of the benchmark, this is fine
                 _ = interp.batch_eval(jnp.zeros_like(random))
                 _.block_until_ready()
                 start = time.perf_counter()
@@ -164,10 +166,11 @@ def test_all_cubic_jax_cpu():
         # Iterates through the test for each iteration count
         with jax.default_device(jax.devices('cpu')[0]):
             for iterations in iteration_counts:
-                random = np.random.uniform(0, 100, iterations)
-                random = jnp.array(random)
-                start = time.perf_counter()
-                _ = interp.batch_eval(random)
+                random = jnp.array(np.random.uniform(0, 100, iterations))
+                # for the precompilation step, the array passed in must be the 
+                # same shape as ones passed in later on for the performance bump
+                # for the purposes of the benchmark, this is fine
+                _ = interp.batch_eval(jnp.zeros_like(random))
                 _.block_until_ready()
                 start = time.perf_counter()
                 result = interp.batch_eval(random)
@@ -238,6 +241,6 @@ def test_all_cubic_opencl():
 # test_all_cubic_torch()
 # test_all_cubic_torch_cpu()
 # test_all_cubic_cupy()
-test_all_cubic_jax()
-test_all_cubic_jax_cpu()
+# test_all_cubic_jax()
+# test_all_cubic_jax_cpu()
 # test_all_cubic_opencl()
