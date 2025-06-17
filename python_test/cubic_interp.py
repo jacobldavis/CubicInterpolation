@@ -129,19 +129,3 @@ class bicubic_interp:
                                         a1[js][0] - 2.5 * a1[js][1] + 2 * a1[js][2] - 0.5 * a1[js][3],
                                         0.5 * (a1[js][2] - a1[js][0]), a1[js][1]]
                 self.a[iss * self.xlength[0] + itt] = a
-
-    # def bicubic_interp_eval_np(self, s, t):
-    #     x = np.vstack((s, t)).T 
-    #     xmin = np.array([0.0, 0.0])
-    #     xmax = np.array(self.xlength) - 1.0
-        
-    #     x = x * self.fx + self.x0
-    #     x = np.clip(x, xmin, xmax)
-        
-    #     ix = np.floor(x).astype(int)
-    #     x -= ix
-        
-    #     indices = ix[:, 0] * self.xlength[0] + ix[:, 1]
-    #     a = self.a[indices] 
-    #     b = ((a[:,0] * x[:,1] + a[:,1]) * x[:,1] + a[:,2]) * x[:,1] + a[:,3]
-    #     return ((b[:,0] * x[:,0] + b[:,1]) * x[:,0] + b[:,2]) * x[:,0] + b[:,3]

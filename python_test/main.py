@@ -134,15 +134,15 @@ def test_all_cubic_jax():
     for i, n_value in enumerate(n_values):
         interp = cubic_interp(onevalues[i], n_value, -1, 1)
         interp.a = jnp.array(interp.a)
+        interp.batch_eval = jit(vmap(interp.cubic_interp_eval_jax))
         # Iterates through the test for each iteration count
         with jax.default_device(jax.devices('gpu')[0]):
             for iterations in iteration_counts:
                 random = np.random.uniform(0, 100, iterations)
                 random = jnp.array(random)
-                start = time.perf_counter()
-                interp.batch_eval = jit(vmap(interp.cubic_interp_eval_jax))
-                _ = interp.batch_eval(random)
+                _ = interp.batch_eval(jnp.zeros_like(random))
                 _.block_until_ready()
+                start = time.perf_counter()
                 result = interp.batch_eval(random)
                 result.block_until_ready()
                 end = time.perf_counter()
@@ -160,15 +160,16 @@ def test_all_cubic_jax_cpu():
     for i, n_value in enumerate(n_values):
         interp = cubic_interp(onevalues[i], n_value, -1, 1)
         interp.a = jnp.array(interp.a)
+        interp.batch_eval = jit(vmap(interp.cubic_interp_eval_jax))
         # Iterates through the test for each iteration count
         with jax.default_device(jax.devices('cpu')[0]):
             for iterations in iteration_counts:
                 random = np.random.uniform(0, 100, iterations)
                 random = jnp.array(random)
                 start = time.perf_counter()
-                interp.batch_eval = jit(vmap(interp.cubic_interp_eval_jax))
                 _ = interp.batch_eval(random)
                 _.block_until_ready()
+                start = time.perf_counter()
                 result = interp.batch_eval(random)
                 result.block_until_ready()
                 end = time.perf_counter()
@@ -177,31 +178,6 @@ def test_all_cubic_jax_cpu():
                 f.write(f"{n_value},{iterations},{elapsed_time:.4g}\n")
         print()
     f.close()
-
-# def test_all_cubic_jax():
-#     f = open('jax_data.csv', 'w')
-#     f.write("Data,Iterations,Time\n")
-#     print("Testing jax cubic:")
-#     # Iterates through the test for each size of data
-#     for i, n_value in enumerate(n_values):
-#         interp = cubic_interp(onevalues[i], n_value, -1, 1)
-#         interp.a = jnp.array(interp.a)
-#         # Iterates through the test for each iteration count
-#         for iterations in iteration_counts:
-#             random = np.random.uniform(0, 100, iterations)
-#             random = jnp.array(random)
-#             interp.batch_eval = jit(vmap(interp.cubic_interp_eval_jax))
-#             _ = interp.batch_eval(random)
-#             _.block_until_ready()
-#             start = time.perf_counter()
-#             result = interp.batch_eval(random)
-#             result.block_until_ready()
-#             end = time.perf_counter()
-#             elapsed_time = end - start
-#             print(f"Time for size {n_value} and iterations {iterations} is {elapsed_time:.4g}")
-#             f.write(f"{n_value},{iterations},{elapsed_time:.4g}\n")
-#         print()
-#     f.close()
 
 kernelsource = """
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
@@ -262,6 +238,6 @@ def test_all_cubic_opencl():
 # test_all_cubic_torch()
 # test_all_cubic_torch_cpu()
 # test_all_cubic_cupy()
-# test_all_cubic_jax()
-# test_all_cubic_jax_cpu()
-test_all_cubic_opencl()
+test_all_cubic_jax()
+test_all_cubic_jax_cpu()
+# test_all_cubic_opencl()
