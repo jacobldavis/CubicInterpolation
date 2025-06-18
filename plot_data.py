@@ -20,23 +20,45 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import glob
+from pathlib import Path
 
 # Collects the cubic interpolation files
 csv_files = glob.glob('results/*.csv')
 csv_files.remove('results/bi_c_data.csv')
+csv_files.remove('results/cpu_torch_data.csv')
 
 # Plots the data
-plt.figure(figsize=(100,100))
+labels = []
+times = []
+
+labels = []
+times = []
+
 for file in csv_files:
     df = pd.read_csv(file)
-    df = df[df['Data'] == 400]
-    df = df[df['Iterations'] != 10000]
-    plt.plot(df['Iterations'], df['Time'], label=file.split('/')[-1])
-plt.xscale('log')
+    df = df[(df['Data'] == 400) & (df['Iterations'] == 10000000)]
+    
+    if not df.empty:
+        label = Path(file).stem.replace('_data', '')
+        labels.append(label)
+        times.append(df['Time'].iloc[0])
+
+# Sorts by time
+sorted_pairs = sorted(zip(times, labels)) 
+times, labels = zip(*sorted_pairs)
+
+# Normalizes time values for colormap
+cmap = plt.get_cmap('tab20')
+colors = [cmap(i % 20) for i in range(len(labels))]
+
+# Plots
+plt.figure(figsize=(12, 6))
+plt.bar(labels, times, color=colors)
 plt.yscale('log')
-plt.xlabel('Iterations')
+plt.xlabel('Framework')
 plt.ylabel('Time')
-plt.title('Loop Iterations vs. Time (|Data| == 400)')
-plt.legend()
-plt.grid(True)
+plt.title('Execution Time by Framework (|Data| = 400, Iterations = 10⁷)')
+plt.xticks(rotation=45, ha='right')
+plt.grid(True, axis='y')
+plt.tight_layout()
 plt.show()
