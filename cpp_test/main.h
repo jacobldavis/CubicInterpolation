@@ -24,6 +24,7 @@ static const int n_values[5] = {4, 9, 100, 400, 1024};
 static const int n_values_size = 5;
 static const int iteration_values[4] = {10000, 100000, 1000000, 10000000};
 static const int iteration_values_size = 4;
+static const int trials = 10;
 
 #include <stdio.h>
 

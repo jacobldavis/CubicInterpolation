@@ -67,7 +67,7 @@ double **read_1dvalues() {
 void test_cubic_xtensor(int i, double* values, FILE* fp) {
     // Initializes time recording variables and cubic_interp
     clock_t start, end;
-    double cpu_time_used;
+    double cpu_time_used = 0.0;
     cubic_interp *interp = cubic_interp_init_xtensor(values, n_values[i], -1, 1);
 
     // Iterates through the interpolation with varying xtensor sizes
@@ -76,10 +76,13 @@ void test_cubic_xtensor(int i, double* values, FILE* fp) {
         xt::xtensor<double, 1> random = xt::eval(xt::random::rand<double>({iteration_values[m]}, 0, 100));
 
         // Performs benchmark
-        start = clock();
-        volatile const xt::xtensor<double, 1> result = cubic_interp_eval_xtensor(interp, random);
-        end = clock();
-        cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+        for (int t = 0; t < trials; t++) {
+            start = clock();
+            volatile const xt::xtensor<double, 1> result = cubic_interp_eval_xtensor(interp, random);
+            end = clock();
+            cpu_time_used += ((double) (end - start)) / CLOCKS_PER_SEC;
+        }
+        cpu_time_used /= trials;
         printf("Time for size %d and iterations %d is %lf\n", n_values[i], iteration_values[m], cpu_time_used);
         fprintf(fp, "%d,%d,%lf\n", n_values[i], iteration_values[m], cpu_time_used);
     }
@@ -99,7 +102,7 @@ void test_all_cubic_xtensor(double** values, FILE* fp) {
 void test_cubic_eigen(int i, double* values, FILE* fp) {
     // Initializes time recording variables and cubic_interp
     clock_t start, end;
-    double cpu_time_used;
+    double cpu_time_used = 0.0;
     cubic_interp *interp = cubic_interp_init_eigen(values, n_values[i], -1, 1);
 
     // Iterates through the interpolation with varying xtensor sizes
@@ -108,10 +111,13 @@ void test_cubic_eigen(int i, double* values, FILE* fp) {
         Eigen::VectorXd random = (Eigen::VectorXd::Random(iteration_values[m]) + Eigen::VectorXd::Ones(iteration_values[m])) * 50;
 
         // Performs benchmark
-        start = clock();
-        volatile const Eigen::VectorXd result = cubic_interp_eval_eigen(interp, random);
-        end = clock();
-        cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+        for (int t = 0; t < trials; t++) {
+            start = clock();
+            volatile const Eigen::VectorXd result = cubic_interp_eval_eigen(interp, random);
+            end = clock();
+            cpu_time_used += ((double) (end - start)) / CLOCKS_PER_SEC;
+        }
+        cpu_time_used /= trials;
         printf("Time for size %d and iterations %d is %lf\n", n_values[i], iteration_values[m], cpu_time_used);
         fprintf(fp, "%d,%d,%lf\n", n_values[i], iteration_values[m], cpu_time_used);
     }
