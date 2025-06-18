@@ -25,7 +25,6 @@ from pathlib import Path
 # Collects the cubic interpolation files
 csv_files = glob.glob('results/*.csv')
 csv_files.remove('results/bi_c_data.csv')
-csv_files.remove('results/cpu_torch_data.csv')
 
 # Plots the data
 labels = []
