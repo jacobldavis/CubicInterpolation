@@ -49,6 +49,14 @@ extern void test_all_cubic_cuda(double **values, FILE *fp)
     printf("Testing CUDA cubic\n");
     fprintf(fp, "Data,Iterations,Time\n");
 
+    // Check if CUDA is available
+    int deviceCount;
+    cudaError_t cudaStatus = cudaGetDeviceCount(&deviceCount);
+    if (cudaStatus != cudaSuccess || deviceCount == 0) {
+        fprintf(stderr, "CUDA initialization error or no CUDA GPU found");
+        return;
+    }
+
     // Iterates through the test for each size in n_values
     for (int i = 0; i < n_values_size; i++) {
         // Initializes cubic_interp
