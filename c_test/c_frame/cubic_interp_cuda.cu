@@ -92,6 +92,7 @@ extern void test_all_cubic_cuda(double **values, FILE *fp)
             cudaEventCreate(&start);
             cudaEventCreate(&stop);
             float elapsedTime;
+            double averageTime = 0.0;
 
             // Copies t to the device
             double* dev_t;
@@ -99,14 +100,18 @@ extern void test_all_cubic_cuda(double **values, FILE *fp)
             cudaMemcpy(dev_t, t, iteration_values[m] * sizeof(double), cudaMemcpyHostToDevice);
 
             // Performs benchmark and records time
-            cudaEventRecord(start, 0);
-            cubic_interp_eval<<<blocksPerGrid,threadsPerBlock>>>(iteration_values[m], dev_interp, dev_t);
-            cudaEventRecord(stop, 0);
-            cudaEventSynchronize(stop);
-            cudaEventElapsedTime(&elapsedTime, start, stop);
+            for (int l = 0; l < trials; l++) {
+                cudaEventRecord(start, 0);
+                cubic_interp_eval<<<blocksPerGrid,threadsPerBlock>>>(iteration_values[m], dev_interp, dev_t);
+                cudaEventRecord(stop, 0);
+                cudaEventSynchronize(stop);
+                cudaEventElapsedTime(&elapsedTime, start, stop);
+                averageTime += elapsedTime;
+            }
+            averageTime /= trials;
             cudaMemcpy(t, dev_t, iteration_values[m]*sizeof(double), cudaMemcpyDeviceToHost); // include or exclude from timing?
-            printf("Time for size %d and iterations %d is %lf\n", n_values[i], iteration_values[m], elapsedTime / 1000.0);
-            fprintf(fp, "%d,%d,%lf\n", n_values[i], iteration_values[m], elapsedTime / 1000.0);
+            printf("Time for size %d and iterations %d is %lf\n", n_values[i], iteration_values[m], averageTime / 1000.0);
+            fprintf(fp, "%d,%d,%lf\n", n_values[i], iteration_values[m], averageTime / 1000.0);
 
             // Frees t, dev_t, and events
             cudaFree(dev_t);

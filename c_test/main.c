@@ -83,7 +83,7 @@ double **read_1dvalues() {
 void test_cubic(int i, double* values, FILE* fp) {
     // Initializes time recording variables and cubic_interp
     clock_t start, end;
-    double cpu_time_used;
+    double cpu_time_used = 0.0;
     cubic_interp *interp = cubic_interp_init(values, n_values[i], -1, 1);
 
     // Iterates through the interpolation with varying loop operation counts
@@ -96,12 +96,15 @@ void test_cubic(int i, double* values, FILE* fp) {
 
         // Performs benchmark
         int a = iteration_values[m];
-        start = clock();
-        for (int t = 0; t < a; t += 1) {
-            volatile const double result = cubic_interp_eval(interp, random[t]);
+        for (int l = 0; l < trials; l++) {
+            start = clock();
+            for (int t = 0; t < a; t += 1) {
+                volatile const double result = cubic_interp_eval(interp, random[t]);
+            }
+            end = clock();
+            cpu_time_used += ((double) (end - start)) / CLOCKS_PER_SEC;
         }
-        end = clock();
-        cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+        cpu_time_used /= trials;
         printf("Time for size %d and iterations %d is %lf\n", n_values[i], iteration_values[m], cpu_time_used);
         fprintf(fp, "%d,%d,%lf\n", n_values[i], iteration_values[m], cpu_time_used);
 
@@ -121,8 +124,9 @@ void test_all_cubic(double** values, FILE* fp) {
 }
 
 void test_cubic_openmp(int i, double* values, FILE* fp) {
-    // Initializes cubic_interp
+    // Initializes cubic_interp and elapsed_time
     cubic_interp *interp = cubic_interp_init(values, n_values[i], -1, 1);
+    double elapsed_time = 0.0;
 
     // Iterates through the interpolation with varying loop operation counts
     for (int m = 0; m < iteration_values_size; m++) {
@@ -142,20 +146,23 @@ void test_cubic_openmp(int i, double* values, FILE* fp) {
         double xmin = 0.0, xmax = interp->length - 1.0;
 
         // Performs benchmark
-        double start = omp_get_wtime();
-        #pragma omp target teams distribute parallel for \
-            map(to: random[0:n], a[0:length])
-        for (int t = 0; t < n; t++) {
-            double x = random[t] * f + t0;
-            x = VCLIP(x, xmin, xmax);            
-            int ix = VFLOOR(x);
-            x -= ix;
-            coeffs = a[ix];
-            volatile double result = VCUBIC(coeffs, x);
+        for (int l = 0; l < trials; l++) {
+            double start = omp_get_wtime();
+            #pragma omp target teams distribute parallel for \
+                map(to: random[0:n], a[0:length])
+            for (int t = 0; t < n; t++) {
+                double x = random[t] * f + t0;
+                x = VCLIP(x, xmin, xmax);            
+                int ix = VFLOOR(x);
+                x -= ix;
+                coeffs = a[ix];
+                volatile double result = VCUBIC(coeffs, x);
+            }
+            #pragma omp barrier
+            double end = omp_get_wtime();
+            elapsed_time += end - start;
         }
-        #pragma omp barrier
-        double end = omp_get_wtime();
-        double elapsed_time = end - start;
+        elapsed_time /= trials;
         printf("Time for size %d and iterations %d is %lf\n", n_values[i], iteration_values[m], elapsed_time);
         fprintf(fp, "%d,%d,%lf\n", n_values[i], iteration_values[m], elapsed_time);
 
@@ -175,8 +182,9 @@ void test_all_cubic_openmp(double** values, FILE* fp) {
 }
 
 void test_cubic_openacc(int i, double* values, FILE* fp) {
-    // Initializes cubic_interp
+    // Initializes cubic_interp and elapsed_time
     cubic_interp *interp = cubic_interp_init(values, n_values[i], -1, 1);
+    double elapsed_time = 0.0;
 
     // Iterates through the interpolation with varying loop operation counts
     for (int m = 0; m < iteration_values_size; m++) {
@@ -196,19 +204,22 @@ void test_cubic_openacc(int i, double* values, FILE* fp) {
         double xmin = 0.0, xmax = interp->length - 1.0;
 
         // Performs benchmark
-        double start = omp_get_wtime();
-        #pragma acc parallel loop copyin(random[0:n], a[0:length])
-        for (int t = 0; t < n; t++) {
-            double x = random[t] * f + t0;
-            x = VCLIP(x, xmin, xmax);            
-            int ix = VFLOOR(x);
-            x -= ix;
-            coeffs = a[ix];
-            volatile double result = VCUBIC(coeffs, x);
+        for (int l = 0; l < trials; l++) {
+            double start = omp_get_wtime();
+            #pragma acc parallel loop copyin(random[0:n], a[0:length])
+            for (int t = 0; t < n; t++) {
+                double x = random[t] * f + t0;
+                x = VCLIP(x, xmin, xmax);            
+                int ix = VFLOOR(x);
+                x -= ix;
+                coeffs = a[ix];
+                volatile double result = VCUBIC(coeffs, x);
+            }
+            acc_wait_all();
+            double end = omp_get_wtime();
+            elapsed_time += end - start;
         }
-        acc_wait_all();
-        double end = omp_get_wtime();
-        double elapsed_time = end - start;
+        elapsed_time /= trials;
         printf("Time for size %d and iterations %d is %lf\n", n_values[i], iteration_values[m], elapsed_time);
         fprintf(fp, "%d,%d,%lf\n", n_values[i], iteration_values[m], elapsed_time);
 
@@ -230,7 +241,7 @@ void test_all_cubic_openacc(double** values, FILE* fp) {
 void test_bicubic(int i, double* values, FILE* fp) {
     // Initializes time recording variables and bicubic_interp
     clock_t start, end;
-    double cpu_time_used;
+    double cpu_time_used = 0.0;
     int n_value = sqrt(n_values[i]);
     bicubic_interp *interp = bicubic_interp_init(values, n_value, n_value, -1, -1, 1, 1);
 
@@ -246,14 +257,17 @@ void test_bicubic(int i, double* values, FILE* fp) {
         
         // Performs benchmark
         int iter = sqrt(iteration_values[m]);
-        start = clock();
-        for (int s = 0; s <= iter; s += 1) {
-            for (int t = 0; t <= iter; t += 1) {
-                volatile const double result = bicubic_interp_eval(interp, randomu[s * iter + t], randomv[s * iter + t]);
+        for (int l = 0; l < trials; l++) {
+            start = clock();
+            for (int s = 0; s <= iter; s += 1) {
+                for (int t = 0; t <= iter; t += 1) {
+                    volatile const double result = bicubic_interp_eval(interp, randomu[s * iter + t], randomv[s * iter + t]);
+                }
             }
+            end = clock();
+            cpu_time_used += ((double) (end - start)) / CLOCKS_PER_SEC;
         }
-        end = clock();
-        cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+        cpu_time_used /= trials;
         printf("Time for size %d and iterations %d is %lf\n", n_values[i], iteration_values[m], cpu_time_used);
         fprintf(fp, "%d,%d,%lf\n", n_values[i], iteration_values[m], cpu_time_used);
 

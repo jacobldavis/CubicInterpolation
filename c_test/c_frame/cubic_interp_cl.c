@@ -99,13 +99,17 @@ void test_all_cubic_cl(double **values, FILE *fp)
             // Creates event for timing
             cl_event event;
             cl_ulong start, end;
+            double elapsedTime = 0.0;
 
             // Executes kernel and times it
-            clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &globalSize, &threadsPerBlock, 0, NULL, &event);
-            clWaitForEvents(1, &event);
-            clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, NULL);
-            clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, NULL);
-            double elapsedTime = (end - start) / 1e6; // time is returned in nanoseconds => milliseconds
+            for (int l = 0; l < trials; l++) {
+                clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &globalSize, &threadsPerBlock, 0, NULL, &event);
+                clWaitForEvents(1, &event);
+                clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, NULL);
+                clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, NULL);
+                elapsedTime += (end - start) / 1e6; // time is returned in nanoseconds => milliseconds
+            }
+            elapsedTime /= trials;
             clEnqueueReadBuffer(queue, dev_t, CL_TRUE, 0, iteration_values[m] * sizeof(double), t, 0, NULL, NULL);
             printf("Time for size %d and iterations %d is %lf\n", n_values[i], iteration_values[m], elapsedTime / 1000.0);
             fprintf(fp, "%d,%d,%lf\n", n_values[i], iteration_values[m], elapsedTime / 1000.0);
