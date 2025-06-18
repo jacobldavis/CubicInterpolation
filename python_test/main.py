@@ -260,9 +260,18 @@ def test_all_cubic_opencl():
     f.close()
 
 test_all_cubic_np()
-test_all_cubic_torch()
 test_all_cubic_torch_cpu()
-test_all_cubic_cupy()
-test_all_cubic_jax()
 test_all_cubic_jax_cpu()
-test_all_cubic_opencl()
+
+if torch.cuda.is_available():
+    test_all_cubic_torch()
+if cp.cuda.is_available():
+    test_all_cubic_cupy()
+if jax.devices()[0].platform != "cpu":
+    test_all_cubic_jax()
+
+platforms = cl.get_platforms()
+devices = [device for platform in platforms for device in platform.get_devices()]
+gpu_available = any(device.type == cl.device_type.GPU for device in devices)
+if gpu_available:
+    test_all_cubic_opencl()
