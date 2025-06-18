@@ -30,6 +30,8 @@ import time
 from cubic_interp import *
 n_values = [4, 9, 100, 400, 1024]
 iteration_counts = [10000, 100000, 1000000, 10000000]
+# Modify trials to change the number of runs per test; averaged result is returned
+trials = 10
 
 # Collects the 1d randomly generated values
 onevalues = []
@@ -49,11 +51,14 @@ def test_all_cubic_np():
         interp.a = np.array(interp.a)
         # Iterates through the test for each iteration count
         for iterations in iteration_counts:
+            elapsed_time = 0
             random = np.random.uniform(0, 100, iterations)
-            start = time.perf_counter()
-            result = interp.cubic_interp_eval_np(random)
-            end = time.perf_counter()
-            elapsed_time = end - start
+            for trial in range(trials):
+                start = time.perf_counter()
+                result = interp.cubic_interp_eval_np(random)
+                end = time.perf_counter()
+                elapsed_time += end - start
+            elapsed_time /= trials
             print(f"Time for size {n_value} and iterations {iterations} is {elapsed_time:.4g}")
             f.write(f"{n_value},{iterations},{elapsed_time:.4g}\n")
         print()
@@ -70,13 +75,16 @@ def test_all_cubic_torch():
         interp.a = torch.tensor(interp.a).to(device)
         # Iterates through the test for each iteration count
         for iterations in iteration_counts:
+            elapsed_time = 0
             random = np.random.uniform(0, 100, iterations)
             random = torch.from_numpy(random).to(device)
-            start = time.perf_counter()
-            result = interp.cubic_interp_eval_torch(device, random)
-            torch.cuda.synchronize()
-            end = time.perf_counter()
-            elapsed_time = end - start
+            for trial in range(trials):
+                start = time.perf_counter()
+                result = interp.cubic_interp_eval_torch(device, random)
+                torch.cuda.synchronize()
+                end = time.perf_counter()
+                elapsed_time += end - start
+            elapsed_time /= trials
             print(f"Time for size {n_value} and iterations {iterations} is {elapsed_time:.4g}")
             f.write(f"{n_value},{iterations},{elapsed_time:.4g}\n")
         print()
@@ -93,12 +101,15 @@ def test_all_cubic_torch_cpu():
         interp.a = torch.tensor(interp.a).to(device)
         # Iterates through the test for each iteration count
         for iterations in iteration_counts:
+            elapsed_time = 0
             random = np.random.uniform(0, 100, iterations)
             random = torch.from_numpy(random).to(device)
-            start = time.perf_counter()
-            result = interp.cubic_interp_eval_torch(device, random)
-            end = time.perf_counter()
-            elapsed_time = end - start
+            for trial in range(trials):
+                start = time.perf_counter()
+                result = interp.cubic_interp_eval_torch(device, random)
+                end = time.perf_counter()
+                elapsed_time += end - start
+            elapsed_time /= trials
             print(f"Time for size {n_value} and iterations {iterations} is {elapsed_time:.4g}")
             f.write(f"{n_value},{iterations},{elapsed_time:.4g}\n")
         print()
@@ -114,13 +125,16 @@ def test_all_cubic_cupy():
         interp.a = cp.array(interp.a)
         # Iterates through the test for each iteration count
         for iterations in iteration_counts:
+            elapsed_time = 0
             random = np.random.uniform(0, 100, iterations)
             random = cp.asarray(random)
-            start = time.perf_counter()
-            result = interp.cubic_interp_eval_cp(random)
-            cp.cuda.Device().synchronize()
-            end = time.perf_counter()
-            elapsed_time = end - start
+            for trial in range(trials):
+                start = time.perf_counter()
+                result = interp.cubic_interp_eval_cp(random)
+                cp.cuda.Device().synchronize()
+                end = time.perf_counter()
+                elapsed_time += end - start
+            elapsed_time /= trials
             print(f"Time for size {n_value} and iterations {iterations} is {elapsed_time:.4g}")
             f.write(f"{n_value},{iterations},{elapsed_time:.4g}\n")
         print()
@@ -138,17 +152,20 @@ def test_all_cubic_jax():
         # Iterates through the test for each iteration count
         with jax.default_device(jax.devices('gpu')[0]):
             for iterations in iteration_counts:
+                elapsed_time = 0
                 random = jnp.array(np.random.uniform(0, 100, iterations))
                 # for the precompilation step, the array passed in must be the 
                 # same shape as ones passed in later on for the performance bump
                 # for the purposes of the benchmark, this is fine
                 _ = interp.batch_eval(jnp.zeros_like(random))
                 _.block_until_ready()
-                start = time.perf_counter()
-                result = interp.batch_eval(random)
-                result.block_until_ready()
-                end = time.perf_counter()
-                elapsed_time = end - start
+                for trial in range(trials):
+                    start = time.perf_counter()
+                    result = interp.batch_eval(random)
+                    result.block_until_ready()
+                    end = time.perf_counter()
+                    elapsed_time += end - start
+                elapsed_time /= trials
                 print(f"Time for size {n_value} and iterations {iterations} is {elapsed_time:.4g}")
                 f.write(f"{n_value},{iterations},{elapsed_time:.4g}\n")
         print()
@@ -166,17 +183,20 @@ def test_all_cubic_jax_cpu():
         # Iterates through the test for each iteration count
         with jax.default_device(jax.devices('cpu')[0]):
             for iterations in iteration_counts:
+                elapsed_time = 0
                 random = jnp.array(np.random.uniform(0, 100, iterations))
                 # for the precompilation step, the array passed in must be the 
                 # same shape as ones passed in later on for the performance bump
                 # for the purposes of the benchmark, this is fine
                 _ = interp.batch_eval(jnp.zeros_like(random))
                 _.block_until_ready()
-                start = time.perf_counter()
-                result = interp.batch_eval(random)
-                result.block_until_ready()
-                end = time.perf_counter()
-                elapsed_time = end - start
+                for trial in range(trials):
+                    start = time.perf_counter()
+                    result = interp.batch_eval(random)
+                    result.block_until_ready()
+                    end = time.perf_counter()
+                    elapsed_time += end - start
+                elapsed_time /= trials
                 print(f"Time for size {n_value} and iterations {iterations} is {elapsed_time:.4g}")
                 f.write(f"{n_value},{iterations},{elapsed_time:.4g}\n")
         print()
@@ -220,27 +240,29 @@ def test_all_cubic_opencl():
         d_a = cl.Buffer(context, cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR, hostbuf=interp.a)
         # Iterates through the test for each iteration count
         for iterations in iteration_counts:
+            elapsed_ns = 0
             random = np.random.uniform(0, 100, iterations).astype(np.float64)
             d_random = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR, hostbuf=random)
-            event = cubic(queue, (iterations,), None,
-                  np.uint32(iterations), np.uint32(interp.length),
-                  np.float64(interp.f), np.float64(interp.t0),
-                  d_random, d_a)
-            event.wait()
+            for trial in range(trials):
+                event = cubic(queue, (iterations,), None,
+                    np.uint32(iterations), np.uint32(interp.length),
+                    np.float64(interp.f), np.float64(interp.t0),
+                    d_random, d_a)
+                event.wait()
+                start_time = event.profile.start  # In nanoseconds
+                end_time = event.profile.end
+                elapsed_ns += end_time - start_time
+            elapsed_s = (elapsed_ns * 1e-9) / trials
             cl.enqueue_copy(queue, random, d_random)
-            start_time = event.profile.start  # In nanoseconds
-            end_time = event.profile.end
-            elapsed_ns = end_time - start_time
-            elapsed_s = elapsed_ns * 1e-9
             print(f"Time for size {n_value} and iterations {iterations} is {elapsed_s:.4g}")
             f.write(f"{n_value},{iterations},{elapsed_s:.4g}\n")
         print()
     f.close()
 
-# test_all_cubic_np()
-# test_all_cubic_torch()
-# test_all_cubic_torch_cpu()
-# test_all_cubic_cupy()
+test_all_cubic_np()
+test_all_cubic_torch()
+test_all_cubic_torch_cpu()
+test_all_cubic_cupy()
 test_all_cubic_jax()
-# test_all_cubic_jax_cpu()
-# test_all_cubic_opencl()
+test_all_cubic_jax_cpu()
+test_all_cubic_opencl()
