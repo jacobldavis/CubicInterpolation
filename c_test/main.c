@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
     FILE* bicfp = fopen("../results/bi_c_data.csv", "w");
     FILE* cudafp = fopen("../results/cuda_data.csv", "w");
     FILE* clfp = fopen("../results/opencl_data.csv", "w");
-    FILE* omp = fopen("../results/omp_data.csv", "w");
+    FILE* omp = fopen("../results/openmp_data.csv", "w");
     FILE* acc = fopen("../results/openacc_data.csv", "w");
 
     // Executes the tests for onevalues and two values
