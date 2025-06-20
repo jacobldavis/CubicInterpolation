@@ -34,33 +34,33 @@
 int main(int argc, char **argv) {
     // Reads the files for input values and creates a csv
     double **onevalues = read_1dvalues();
-    // FILE* cfp = fopen("../results/c_data.csv", "w");
-    // FILE* bicfp = fopen("../results/bi_c_data.csv", "w");
-    // FILE* cudafp = fopen("../results/cuda_data.csv", "w");
-    // FILE* clfp = fopen("../results/opencl_data.csv", "w");
+    FILE* cfp = fopen("../results/c_data.csv", "w");
+    FILE* bicfp = fopen("../results/bi_c_data.csv", "w");
+    FILE* cudafp = fopen("../results/cuda_data.csv", "w");
+    FILE* clfp = fopen("../results/opencl_data.csv", "w");
     FILE* omp = fopen("../results/openmp_data.csv", "w");
     FILE* ompcpu = fopen("../results/cpu_openmp_data.csv", "w");
     FILE* acc = fopen("../results/openacc_data.csv", "w");
 
     // Executes the tests for onevalues and two values
     srand(time(NULL));
-    // test_all_cubic(onevalues, cfp);
-    // test_all_bicubic(onevalues, bicfp);
-    // test_all_cubic_cuda(onevalues, cudafp);
-    // test_all_cubic_cl(onevalues, clfp);
+    test_all_cubic(onevalues, cfp);
+    test_all_bicubic(onevalues, bicfp);
+    test_all_cubic_cuda(onevalues, cudafp);
+    test_all_cubic_cl(onevalues, clfp);
     test_all_cubic_openmp(onevalues, omp);
     test_all_cubic_openacc(onevalues, acc);
     test_all_cubic_openmp_cpu(onevalues, omp);
 
     // Frees onevalues and twovalues and closes files
-    // free1d(onevalues);
-    // fclose(cfp);
-    // fclose(bicfp);
-    // fclose(cudafp);
-    // fclose(clfp);
+    free1d(onevalues);
+    fclose(cfp);
+    fclose(bicfp);
+    fclose(cudafp);
+    fclose(clfp);
     fclose(omp);
     fclose(ompcpu);
-    // fclose(acc);
+    fclose(acc);
 
     return 0;
 }
