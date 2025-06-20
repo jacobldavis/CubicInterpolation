@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
     test_all_cubic_cl(onevalues, clfp);
     test_all_cubic_openmp(onevalues, omp);
     test_all_cubic_openacc(onevalues, acc);
-    test_all_cubic_openmp_cpu(onevalues, omp);
+    test_all_cubic_openmp_cpu(onevalues, ompcpu);
 
     // Frees onevalues and twovalues and closes files
     free1d(onevalues);
