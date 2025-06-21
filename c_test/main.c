@@ -183,7 +183,6 @@ void test_all_cubic_openmp(double** values, FILE* fp) {
     }
 }
 
-
 void test_cubic_openmp_cpu(int i, double* values, FILE* fp) {
     // Initializes cubic_interp and elapsed_time
     cubic_interp *interp = cubic_interp_init(values, n_values[i], -1, 1);
@@ -258,7 +257,7 @@ void test_cubic_openacc(int i, double* values, FILE* fp) {
         int f = interp->f;
         int t0 = interp->t0;
         int length = interp->length;
-        double (*a)[4] = interp->a;
+        double* a = (double*)interp->a;
         int n = iteration_values[m];
         double* coeffs;
         double xmin = 0.0, xmax = interp->length - 1.0;
@@ -272,10 +271,9 @@ void test_cubic_openacc(int i, double* values, FILE* fp) {
                 x = VCLIP(x, xmin, xmax);            
                 int ix = VFLOOR(x);
                 x -= ix;
-                coeffs = a[ix];
-                volatile double result = VCUBIC(coeffs, x);
+                int base = 4 * ix;
+                volatile double result = (t * (t * (t * a[base] + a[base+1]) + a[base+2]) + a[base+3]);
             }
-            acc_wait_all();
             double end = omp_get_wtime();
             elapsed_time += end - start;
         }
@@ -294,7 +292,7 @@ void test_all_cubic_openacc(double** values, FILE* fp) {
     printf("\nTesting openacc cubic:\n");
     fprintf(fp, "Data,Iterations,Time\n");
     for (int i = 0; i < n_values_size; i++) {
-        test_cubic_openmp(i, values[i], fp);
+        test_cubic_openacc(i, values[i], fp);
     }
 }
 
