@@ -38,9 +38,8 @@ int main(int argc, char **argv) {
     FILE* bicfp = fopen("../results/bi_c_data.csv", "w");
     FILE* cudafp = fopen("../results/cuda_data.csv", "w");
     FILE* clfp = fopen("../results/opencl_data.csv", "w");
-    FILE* omp = fopen("../results/openmp_data.csv", "w");
-    FILE* ompcpu = fopen("../results/cpu_openmp_data.csv", "w");
-    FILE* acc = fopen("../results/openacc_data.csv", "w");
+    FILE* ompfp = fopen("../results/openmp_data.csv", "w");
+    FILE* ompcpufp = fopen("../results/cpu_openmp_data.csv", "w");
 
     // Executes the tests for onevalues and two values
     srand(time(NULL));
@@ -48,9 +47,8 @@ int main(int argc, char **argv) {
     test_all_bicubic(onevalues, bicfp);
     test_all_cubic_cuda(onevalues, cudafp);
     test_all_cubic_cl(onevalues, clfp);
-    test_all_cubic_openmp(onevalues, omp);
-    test_all_cubic_openacc(onevalues, acc);
-    test_all_cubic_openmp_cpu(onevalues, ompcpu);
+    test_all_cubic_openmp(onevalues, ompfp);
+    test_all_cubic_openmp_cpu(onevalues, ompcpufp);
 
     // Frees onevalues and twovalues and closes files
     free1d(onevalues);
@@ -58,9 +56,8 @@ int main(int argc, char **argv) {
     fclose(bicfp);
     fclose(cudafp);
     fclose(clfp);
-    fclose(omp);
-    fclose(ompcpu);
-    fclose(acc);
+    fclose(ompfp);
+    fclose(ompcpufp);
 
     return 0;
 }
@@ -237,62 +234,6 @@ void test_all_cubic_openmp_cpu(double** values, FILE* fp) {
     fprintf(fp, "Data,Iterations,Time\n");
     for (int i = 0; i < n_values_size; i++) {
         test_cubic_openmp_cpu(i, values[i], fp);
-    }
-}
-
-void test_cubic_openacc(int i, double* values, FILE* fp) {
-    // Initializes cubic_interp and elapsed_time
-    cubic_interp *interp = cubic_interp_init(values, n_values[i], -1, 1);
-    double elapsed_time = 0.0;
-
-    // Iterates through the interpolation with varying loop operation counts
-    for (int m = 0; m < iteration_values_size; m++) {
-        // Precomputes random values
-        double* random = (double*)malloc(iteration_values[m] * sizeof(double));
-        for (int k = 0; k < iteration_values[m]; k++) {
-            random[k] = rand() * 100;
-        }
-
-        // Sets necessary values
-        int f = interp->f;
-        int t0 = interp->t0;
-        int length = interp->length;
-        double* a = (double*)interp->a;
-        int n = iteration_values[m];
-        double* coeffs;
-        double xmin = 0.0, xmax = interp->length - 1.0;
-
-        // Performs benchmark
-        for (int l = 0; l < trials; l++) {
-            double start = omp_get_wtime();
-            #pragma acc parallel loop copyin(random[0:n], a[0:length])
-            for (int t = 0; t < n; t++) {
-                double x = random[t] * f + t0;
-                x = VCLIP(x, xmin, xmax);            
-                int ix = VFLOOR(x);
-                x -= ix;
-                int base = 4 * ix;
-                volatile double result = (t * (t * (t * a[base] + a[base+1]) + a[base+2]) + a[base+3]);
-            }
-            double end = omp_get_wtime();
-            elapsed_time += end - start;
-        }
-        elapsed_time /= trials;
-        printf("Time for size %d and iterations %d is %lf\n", n_values[i], iteration_values[m], elapsed_time);
-        fprintf(fp, "%d,%d,%lf\n", n_values[i], iteration_values[m], elapsed_time);
-
-        free(random);
-    }
-    printf("\n");
-    cubic_interp_free(interp);
-}
-
-void test_all_cubic_openacc(double** values, FILE* fp) {
-    // Runs the test for all values of n
-    printf("\nTesting openacc cubic:\n");
-    fprintf(fp, "Data,Iterations,Time\n");
-    for (int i = 0; i < n_values_size; i++) {
-        test_cubic_openacc(i, values[i], fp);
     }
 }
 
