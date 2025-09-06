@@ -6,3 +6,7 @@ We've tested the following frameworks thus far:
 - c_test: pure C, OpenMP, OpenCL, and CUDA
 - cpp_test: xtensor and Eigen
 - python_test: NumPy, CuPy, JAX, PyOpenCL, and PyTorch
+
+Current areas for improvement include using JIT compilation for the PyTorch benchmarks and implementing custom kernels for CuPy.
+
+![benchmarking results](results/results.png)
